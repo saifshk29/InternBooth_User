@@ -1,0 +1,738 @@
+import { useState, useEffect, useRef } from 'react';
+import { collection, addDoc, query, where, orderBy, getDocs, getDoc, doc as firestoreDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../../firebase/config';
+import { useAuth } from '../../context/AuthContext';
+
+function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
+  const { currentUser, getUserData } = useAuth();
+  const [formError, setFormError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [facultyData, setFacultyData] = useState(null);
+  const [internshipForm, setInternshipForm] = useState({
+    title: '',
+    companyName: '',
+    jobRole: '',
+    domains: [],
+    description: '',
+    responsibilities: '',
+    skills: [],
+    firstRoundDate: '',
+    testDate: '',
+    postedDate: new Date().toISOString().split('T')[0],
+    location: '',
+    startDate: '',
+    stipend: '',
+    officeHours: '',
+    duration: '',
+    facultyName: '',
+    facultyDesignation: ''
+  });
+
+  // Domain selection states
+  const [showDomainsDropdown, setShowDomainsDropdown] = useState(false);
+  const [domainSearch, setDomainSearch] = useState('');
+
+  // Skills selection states
+  const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
+  const [skillSearch, setSkillSearch] = useState('');
+
+  // Available domains
+  const AVAILABLE_DOMAINS = [
+    'Web Development',
+    'Mobile Development',
+    'Data Science',
+    'Machine Learning',
+    'Cloud Computing',
+    'DevOps',
+    'UI/UX Design',
+    'Cybersecurity',
+    'Game Development',
+    'Blockchain',
+    'IoT'
+  ];
+
+  // Available skills
+  const AVAILABLE_SKILLS = [
+    'JavaScript',
+    'Python',
+    'Java',
+    'C++',
+    'React',
+    'Node.js',
+    'HTML',
+    'CSS',
+    'SQL',
+    'MongoDB',
+    'Git',
+    'Docker',
+    'AWS',
+    'Azure',
+    'Machine Learning',
+    'Data Analysis',
+    'UI/UX Design',
+    'Project Management',
+    'Agile',
+    'Communication'
+  ];
+
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (editMode && initialData) {
+      setInternshipForm({
+        title: initialData.title || '',
+        companyName: initialData.companyName || '',
+        jobRole: initialData.jobRole || '',
+        domains: Array.isArray(initialData.domains) ? initialData.domains : [],
+        description: initialData.description || '',
+        responsibilities: Array.isArray(initialData.responsibilities)
+          ? initialData.responsibilities.join('\n')
+          : (initialData.responsibilities || ''),
+        skills: Array.isArray(initialData.skills) ? initialData.skills : [],
+        firstRoundDate: initialData.firstRoundDate ? new Date(initialData.firstRoundDate).toISOString().split('T')[0] : '',
+        testDate: initialData.testDate ? new Date(initialData.testDate).toISOString().split('T')[0] : '',
+        postedDate: initialData.postedDate ? new Date(initialData.postedDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        location: initialData.location || '',
+        startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().split('T')[0] : '',
+        stipend: initialData.stipend || '',
+        officeHours: initialData.officeHours || '',
+        duration: initialData.duration || '',
+        facultyName: initialData.facultyName || '',
+        facultyDesignation: initialData.facultyDesignation || ''
+      });
+    }
+  }, [editMode, initialData]);
+
+  // Fetch faculty data on component mount
+  useEffect(() => {
+    async function fetchFacultyData() {
+      if (currentUser) {
+        try {
+          const userData = await getUserData(currentUser.uid);
+          setFacultyData(userData);
+          
+          // Update form with faculty data
+          if (userData) {
+            const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
+            setInternshipForm(prev => ({
+              ...prev,
+              facultyName: fullName,
+              facultyDesignation: userData.designation || ''
+            }));
+          }
+        } catch (error) {
+          console.error('Error fetching faculty data:', error);
+        }
+      }
+    }
+    
+    fetchFacultyData();
+  }, [currentUser, getUserData]);
+
+  // Handle domain selection
+  const handleDomainSelect = (domain) => {
+    if (!internshipForm.domains.includes(domain)) {
+      setInternshipForm(prev => ({
+        ...prev,
+        domains: [...prev.domains, domain]
+      }));
+    }
+    setDomainSearch('');
+    setShowDomainsDropdown(false);
+  };
+
+  // Handle domain removal
+  const handleRemoveDomain = (domainToRemove) => {
+    setInternshipForm(prev => ({
+      ...prev,
+      domains: prev.domains.filter(domain => domain !== domainToRemove)
+    }));
+  };
+
+  // Handle skill selection
+  const handleSkillSelect = (skill) => {
+    if (!internshipForm.skills.includes(skill)) {
+      setInternshipForm(prev => ({
+        ...prev,
+        skills: [...prev.skills, skill]
+      }));
+    }
+    setSkillSearch('');
+    setShowSkillsDropdown(false);
+  };
+
+  // Handle skill removal
+  const handleRemoveSkill = (skillToRemove) => {
+    setInternshipForm(prev => ({
+      ...prev,
+      skills: prev.skills.filter(skill => skill !== skillToRemove)
+    }));
+  };
+
+  // References for dropdowns to detect outside clicks
+  const domainsDropdownRef = useRef(null);
+  const skillsDropdownRef = useRef(null);
+
+  // Handle clicks outside dropdowns
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (domainsDropdownRef.current && !domainsDropdownRef.current.contains(event.target)) {
+        setShowDomainsDropdown(false);
+      }
+      if (skillsDropdownRef.current && !skillsDropdownRef.current.contains(event.target)) {
+        setShowSkillsDropdown(false);
+      }
+    }
+
+    // Add event listener
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      // Clean up event listener
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Filter domains based on search
+  const filteredDomains = AVAILABLE_DOMAINS.filter(domain =>
+    domain.toLowerCase().includes(domainSearch.toLowerCase()) &&
+    !internshipForm.domains.includes(domain)
+  );
+
+  // Filter skills based on search
+  const filteredSkills = AVAILABLE_SKILLS.filter(skill =>
+    skill.toLowerCase().includes(skillSearch.toLowerCase()) &&
+    !internshipForm.skills.includes(skill)
+  );
+
+  // Check if we should show "Add this domain" option
+  const showAddDomainOption = domainSearch.trim() !== '' && 
+    filteredDomains.length === 0 && 
+    !internshipForm.domains.includes(domainSearch.trim());
+
+  // Check if we should show "Add this skill" option
+  const showAddSkillOption = skillSearch.trim() !== '' && 
+    filteredSkills.length === 0 && 
+    !internshipForm.skills.includes(skillSearch.trim());
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setInternshipForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      setSubmitting(true);
+      setFormError('');
+      
+      // Enhanced validation
+      const requiredFields = [
+        'title', 
+        'companyName', 
+        'jobRole', 
+        'description', 
+        'responsibilities', 
+        'firstRoundDate', 
+        'testDate', 
+        'location', 
+        'startDate', 
+        'stipend',
+        'duration'
+      ];
+      
+      for (const field of requiredFields) {
+        if (!internshipForm[field] || internshipForm[field].trim() === '') {
+          setFormError(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()} field`);
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      // Validate at least one domain is selected
+      if (internshipForm.domains.length === 0) {
+        setFormError('Please select at least one domain');
+        setSubmitting(false);
+        return;
+      }
+
+      // Validate at least one skill is selected
+      if (internshipForm.skills.length === 0) {
+        setFormError('Please select at least one skill');
+        setSubmitting(false);
+        return;
+      }
+
+      // Get dates for reference only (validation removed as requested)
+      const firstRoundDate = new Date(internshipForm.firstRoundDate);
+      const testDate = new Date(internshipForm.testDate);
+      
+      // Only validate that test date is not before the application deadline
+      if (testDate < firstRoundDate) {
+        setFormError('Test date cannot be before the application deadline');
+        setSubmitting(false);
+        return;
+      }
+      
+      // Format responsibilities as array
+      const responsibilities = internshipForm.responsibilities
+        .split('\n')
+        .map(item => item.trim())
+        .filter(item => item !== '');
+
+      if (responsibilities.length === 0) {
+        setFormError('Please add at least one responsibility');
+        setSubmitting(false);
+        return;
+      }
+      
+      // Format the data for Firestore
+      const formattedData = {
+        title: internshipForm.title.trim(),
+        companyName: internshipForm.companyName.trim(),
+        jobRole: internshipForm.jobRole.trim(),
+        domains: internshipForm.domains,
+        description: internshipForm.description.trim(),
+        responsibilities: internshipForm.responsibilities.split('\n').filter(item => item.trim() !== ''),
+        skills: internshipForm.skills,
+        firstRoundDate: new Date(internshipForm.firstRoundDate).toISOString(),
+        testDate: new Date(internshipForm.testDate).toISOString(),
+        facultyId: currentUser.uid,
+        facultyName: internshipForm.facultyName,
+        facultyDesignation: internshipForm.facultyDesignation,
+        postedDate: new Date().toISOString(),
+        status: 'active',
+        location: internshipForm.location.trim(),
+        startDate: new Date(internshipForm.startDate).toISOString(),
+        stipend: internshipForm.stipend.trim(),
+        duration: internshipForm.duration.trim()
+      };
+      
+      if (editMode && initialData && initialData.id) {
+        // Use previous postedDate in edit mode
+        formattedData.postedDate = initialData.postedDate || new Date().toISOString();
+        // Update existing internship
+        const docRef = firestoreDoc(db, 'internships', initialData.id);
+        await updateDoc(docRef, formattedData);
+        if (onSuccess) onSuccess(formattedData);
+      } else {
+        // Add postedDate only for new internships
+        formattedData.postedDate = new Date().toISOString();
+        // Only include office hours if it's not empty
+        if (internshipForm.officeHours.trim()) {
+          formattedData.officeHours = internshipForm.officeHours.trim();
+        }
+        // Add to Firestore
+        const docRef = await addDoc(collection(db, 'internships'), formattedData);
+        if (!docRef.id) {
+          throw new Error('Failed to create internship document');
+        }
+        // Reset form
+        setInternshipForm({
+          title: '',
+          companyName: '',
+          jobRole: '',
+          domains: [],
+          description: '',
+          responsibilities: '',
+          skills: [],
+          firstRoundDate: '',
+          testDate: '',
+          postedDate: new Date().toISOString().split('T')[0],
+          location: '',
+          startDate: '',
+          stipend: '',
+          officeHours: '',
+          duration: '',
+          facultyName: '',
+          facultyDesignation: ''
+        });
+        if (onSuccess) onSuccess();
+      }
+      setSubmitting(false);
+    } catch (error) {
+      console.error('Error creating/updating internship:', error);
+      setFormError(error.message || 'Failed to create/update internship. Please try again.');
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-bold">Post a New Internship</h3>
+        <button
+          onClick={onCancel}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          Cancel
+        </button>
+      </div>
+      
+      {formError && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {formError}
+        </div>
+      )}
+      
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
+              Internship Title*
+            </label>
+            <input
+              id="title"
+              name="title"
+              type="text"
+              className="input-field"
+              value={internshipForm.title}
+              onChange={handleInputChange}
+              placeholder="e.g., Frontend Developer Intern"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="companyName">
+              Company Name*
+            </label>
+            <input
+              id="companyName"
+              name="companyName"
+              type="text"
+              className="input-field"
+              value={internshipForm.companyName}
+              onChange={handleInputChange}
+              placeholder="e.g., Acme Inc."
+              required
+            />
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="jobRole">
+              Job Role*
+            </label>
+            <input
+              id="jobRole"
+              name="jobRole"
+              type="text"
+              className="input-field"
+              value={internshipForm.jobRole}
+              onChange={handleInputChange}
+              placeholder="e.g., Frontend Developer"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="domains">
+              Domains*
+            </label>
+            <div className="relative" ref={domainsDropdownRef}>
+              <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded min-h-[42px]">
+                {internshipForm.domains.map(domain => (
+                  <span 
+                    key={domain}
+                    className="inline-flex items-center bg-primary bg-opacity-10 text-primary px-2 py-1 rounded"
+                  >
+                    {domain}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveDomain(domain)}
+                      className="ml-1 text-primary hover:text-primary-dark"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  value={domainSearch}
+                  onChange={(e) => {
+                    setDomainSearch(e.target.value);
+                    setShowDomainsDropdown(true);
+                  }}
+                  onFocus={() => setShowDomainsDropdown(true)}
+                  placeholder={internshipForm.domains.length === 0 ? "Select Domains" : ""}
+                  className="border-0 outline-none flex-grow min-w-[100px]"
+                />
+              </div>
+              {showDomainsDropdown && (filteredDomains.length > 0 || showAddDomainOption) && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto">
+                  {filteredDomains.map(domain => (
+                    <button
+                      key={domain}
+                      type="button"
+                      onClick={() => handleDomainSelect(domain)}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                    >
+                      {domain}
+                    </button>
+                  ))}
+                  {showAddDomainOption && (
+                    <button
+                      type="button"
+                      onClick={() => handleDomainSelect(domainSearch.trim())}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 text-primary font-medium"
+                    >
+                      + Add "{domainSearch.trim()}"
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
+            Description*
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            rows="4"
+            className="input-field"
+            value={internshipForm.description}
+            onChange={handleInputChange}
+            placeholder="Provide a detailed description of the internship opportunity..."
+            required
+          />
+        </div>
+        
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="responsibilities">
+            Responsibilities* (One per line)
+          </label>
+          <textarea
+            id="responsibilities"
+            name="responsibilities"
+            rows="4"
+            className="input-field"
+            value={internshipForm.responsibilities}
+            onChange={handleInputChange}
+            placeholder="Enter responsibilities, one per line:
+Develop responsive web applications
+Collaborate with design team
+Implement UI components"
+            required
+          />
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="skills">
+            Required Skills*
+          </label>
+          <div className="relative" ref={skillsDropdownRef}>
+            <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded min-h-[42px]">
+              {internshipForm.skills.map(skill => (
+                <span 
+                  key={skill}
+                  className="inline-flex items-center bg-primary bg-opacity-10 text-primary px-2 py-1 rounded"
+                >
+                  {skill}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSkill(skill)}
+                    className="ml-1 text-primary hover:text-primary-dark"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              <input
+                type="text"
+                value={skillSearch}
+                onChange={(e) => {
+                  setSkillSearch(e.target.value);
+                  setShowSkillsDropdown(true);
+                }}
+                onFocus={() => setShowSkillsDropdown(true)}
+                placeholder={internshipForm.skills.length === 0 ? "Select Skills" : ""}
+                className="border-0 outline-none flex-grow min-w-[100px]"
+              />
+            </div>
+            {showSkillsDropdown && (filteredSkills.length > 0 || showAddSkillOption) && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto">
+                {filteredSkills.map(skill => (
+                  <button
+                    key={skill}
+                    type="button"
+                    onClick={() => handleSkillSelect(skill)}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                  >
+                    {skill}
+                  </button>
+                ))}
+                {showAddSkillOption && (
+                  <button
+                    type="button"
+                    onClick={() => handleSkillSelect(skillSearch.trim())}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-100 text-primary font-medium"
+                  >
+                    + Add "{skillSearch.trim()}"
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="location">
+              Location*
+            </label>
+            <input
+              id="location"
+              name="location"
+              type="text"
+              className="input-field"
+              value={internshipForm.location}
+              onChange={handleInputChange}
+              placeholder="e.g., Remote, Bangalore, Mumbai"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="startDate">
+              Start Date Of the Internship
+            </label>
+            <div className="relative">
+              <input
+                id="startDate"
+                name="startDate"
+                type="date"
+                className="input-field cursor-pointer"
+                value={internshipForm.startDate}
+                onChange={handleInputChange}
+                onClick={(e) => {
+                  // Force the date picker to open when clicking anywhere in the field
+                  e.target.showPicker();
+                }}
+                required
+              />
+              
+            </div>
+          </div>
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="stipend">
+              Stipend*
+            </label>
+            <input
+              id="stipend"
+              name="stipend"
+              type="text"
+              className="input-field"
+              value={internshipForm.stipend}
+              onChange={handleInputChange}
+              placeholder="e.g., 5000 per month, Unpaid"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="duration">
+              Duration (months)*
+            </label>
+            <input
+              id="duration"
+              name="duration"
+              type="number"
+              min="1"
+              max="24"
+              className="input-field"
+              value={internshipForm.duration}
+              onChange={handleInputChange}
+              placeholder="e.g., 3"
+              required
+            />
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="firstRoundDate">
+            Application Deadline*
+          </label>
+          <div className="relative">
+            <input
+              id="firstRoundDate"
+              name="firstRoundDate"
+              type="date"
+              className="input-field cursor-pointer"
+              value={internshipForm.firstRoundDate}
+              onChange={handleInputChange}
+              min={new Date().toISOString().split('T')[0]}
+              onClick={(e) => {
+                // Force the date picker to open when clicking anywhere in the field
+                e.target.showPicker();
+              }}
+              required
+            />
+           
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="testDate">
+            Test Date*
+          </label>
+          <div className="relative">
+            <input
+              id="testDate"
+              name="testDate"
+              type="date"
+              className="input-field cursor-pointer"
+              value={internshipForm.testDate}
+              onChange={handleInputChange}
+              min={internshipForm.firstRoundDate || new Date().toISOString().split('T')[0]}
+              onClick={(e) => {
+                // Force the date picker to open when clicking anywhere in the field
+                e.target.showPicker();
+              }}
+              required
+            />
+            
+          </div>
+          <p className="text-sm text-gray-500 mt-1">Test will be conducted on or after the application deadline</p>
+        </div>
+        
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="officeHours">
+            Office Hours (Optional)
+          </label>
+          <input
+            id="officeHours"
+            name="officeHours"
+            type="text"
+            className="input-field"
+            value={internshipForm.officeHours}
+            onChange={handleInputChange}
+            placeholder="e.g., 9:00 AM - 5:00 PM IST"
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            Specify the working hours for this internship (if applicable)
+          </p>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={submitting}
+          >
+            {submitting ? (editMode ? 'Updating...' : 'Posting...') : (editMode ? 'Update Internship' : 'Post Internship')}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default InternshipForm; 

@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users collection to be created and updated
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow authenticated users to read any document
+    match /{document=**} {
+      allow read: if request.auth != null;
+    }
+    
+    // Allow all authenticated users to write to any collection
+    // This is simpler for a super admin dashboard
+    match /faculty/{docId} {
+      allow write: if request.auth != null;
+    }
+    
+    match /students/{docId} {
+      allow write: if request.auth != null;
+    }
+    
+    match /internships/{docId} {
+      allow write: if request.auth != null;
+      
+      // Allow writes to applications subcollection within internships
+      match /applications/{applicationId} {
+        allow write: if request.auth != null;
+      }
+    }
+    
+    match /applications/{docId} {
+      allow write: if request.auth != null;
+    }
+    
+    match /tests/{docId} {
+      allow write: if request.auth != null;
+    }
+    
+    match /testsAssigned/{docId} {
+      allow write: if request.auth != null;
+    }
+    
+    // Add permission for the new quizSubmissions collection
+    match /quizSubmissions/{docId} {
+      allow write: if request.auth != null;
+    }
+    
+    // Add permission for the round1Submissions collection (new Round 1)
+    match /round1Submissions/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Add permission for the round2Submissions collection (now for quiz)
+    match /round2Submissions/{docId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
