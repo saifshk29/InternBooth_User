@@ -204,6 +204,11 @@ function Dashboard() {
           >
             Applications
           </button>
+          <Link to="/faculty/all-students">
+            <button className={`px-4 py-2 mt-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-200`}>
+              All Students
+            </button>
+          </Link>
         </nav>
       </div>
 

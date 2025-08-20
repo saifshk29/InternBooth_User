@@ -22,6 +22,45 @@ function Dashboard() {
   const [statusFilter, setStatusFilter] = useState('all');
   const applicationRefs = useRef({});
 
+  const handleAcceptOffer = async (application) => {
+    if (!currentUser || !application) return;
+
+    try {
+      // 1. Update the application status
+      const appRef = doc(db, 'applications', application.id);
+      await updateDoc(appRef, { status: 'offer_accepted' });
+
+      // 2. Add the internship to the student's profile
+      const studentDocRef = doc(db, 'students', currentUser.uid);
+      const studentDoc = await getDoc(studentDocRef);
+
+      if (studentDoc.exists()) {
+        const studentData = studentDoc.data();
+        const updatedInternships = studentData.internships || [];
+        
+        // Avoid adding duplicates
+        if (!updatedInternships.some(intern => intern.internshipId === application.internshipId)) {
+          updatedInternships.push({
+            internshipId: application.internshipId,
+            title: application.internshipDetails.title,
+            companyName: application.internshipDetails.companyName,
+            startDate: new Date(), // Or a more specific start date if available
+            status: 'accepted'
+          });
+
+          await updateDoc(studentDocRef, { internships: updatedInternships });
+        }
+      }
+
+      // Refresh dashboard data
+      fetchDashboardData();
+
+    } catch (error) {
+      console.error("Error accepting offer:", error);
+      setError("Failed to accept the offer. Please try again.");
+    }
+  };
+
   // Function to check if a test is assigned to an application and is valid to take
   const checkTestAssigned = async (applicationId, applicationStatus) => {
     try {
@@ -666,13 +705,22 @@ function Dashboard() {
                         >
                           {getStatusIcon(application.status || 'pending')}
                         </span>
-                        <button 
-                          onClick={(e) => handleRemoveApplication(e, application.id)}
-                          className="text-red-500 hover:text-red-700 transition-colors p-1 rounded-full hover:bg-red-100"
-                          title="Remove from list"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        {application.status === 'selected' ? (
+                          <button
+                            onClick={() => handleAcceptOffer(application)}
+                            className="bg-green-500 text-white px-3 py-1 rounded-full text-sm hover:bg-green-600 transition-colors"
+                          >
+                            Accept Offer
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => handleRemoveApplication(e, application.id)}
+                            className="text-gray-400 hover:text-red-500 p-2"
+                            title="Remove from list"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
                         <ChevronRight className="h-5 w-5 text-gray-400" />
                       </div>
                     </div>

@@ -15,12 +15,14 @@ export const APPLICATION_STATUS = {
   
   // Round 2 statuses
   TEST_ASSIGNED: 'test_assigned',
+  TEST_SUBMITTED: 'test_submitted',
   QUIZ_COMPLETED: 'quiz_completed',
   QUIZ_APPROVED: 'quiz_approved',
   QUIZ_REJECTED: 'quiz_rejected',
   
   // Final statuses
   SELECTED: 'selected',
+  OFFER_ACCEPTED: 'offer_accepted',
   REJECTED: 'rejected'
 };
 
@@ -235,8 +237,19 @@ export const updateRoundResults = async (internshipId, roundNumber, roundStatus)
  * @param {string} status - The application status
  * @returns {string} - Formatted status label
  */
-export const getStatusLabel = (status) => {
-  return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+export const getStatusLabel = (app) => {
+  if (!app || !app.status) return 'Unknown';
+
+  // Handle specific pending statuses
+  if (app.status === APPLICATION_STATUS.FORM_SUBMITTED) {
+    return 'Pending Review for Round 1';
+  }
+  if (app.status === APPLICATION_STATUS.TEST_SUBMITTED) {
+    return 'Pending Review for Round 2';
+  }
+
+  // Default formatting for other statuses
+  return app.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
 /**

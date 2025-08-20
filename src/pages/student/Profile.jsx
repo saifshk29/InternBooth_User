@@ -39,18 +39,29 @@ const AVAILABLE_DEPARTMENTS = [
   'Electronics & Communication',
   'Mechanical Engineering',
   'Civil Engineering',
-  'Chemical Engineering',
-  'Biotechnology',
-  'Data Science',
   'Artificial Intelligence',
-  'Business Administration',
-  'Commerce',
-  'Economics',
-  'Mathematics',
-  'Physics',
-  'Chemistry',
-  'Other'
+  
 ];
+
+const initialFormData = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  department: '',
+  division: '',
+  currentYear: '',
+  tenthPercentage: '',
+  twelfthPercentage: '',
+  internships: [],
+  interests: [],
+  skills: [],
+  cgpa: '',
+  passingYear: '',
+  certificates: [],
+  previousProjects: '',
+  resume: null,
+  resumeURL: ''
+};
 
 function Profile() {
   const { currentUser, getUserData } = useAuth();
@@ -60,18 +71,7 @@ function Profile() {
   const [success, setSuccess] = useState('');
   const [profilePictureURL, setProfilePictureURL] = useState('');
   const [profilePictureFile, setProfilePictureFile] = useState(null);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    department: '',
-    interests: [],
-    skills: [],
-    cgpa: '',
-    passingYear: '',
-    certificates: [],
-    previousProjects: ''
-  });
+  const [formData, setFormData] = useState(initialFormData);
   const [interestSearch, setInterestSearch] = useState('');
   const [skillSearch, setSkillSearch] = useState('');
   const [showInterestsDropdown, setShowInterestsDropdown] = useState(false);
@@ -96,6 +96,11 @@ function Profile() {
               lastName: userData.lastName || '',
               email: userData.email || '',
               department: userData.department || '',
+              division: userData.division || '',
+              currentYear: userData.currentYear || '',
+              tenthPercentage: userData.tenthPercentage || '',
+              twelfthPercentage: userData.twelfthPercentage || '',
+              internships: userData.internships || [],
               interests: userData.interests || [],
               skills: userData.skills || [],
               cgpa: userData.cgpa || '',
@@ -143,10 +148,19 @@ function Profile() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+
+    if (name.startsWith('internshipDetails.')) {
+      const key = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        internshipDetails: {
+          ...prev.internshipDetails,
+          [key]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleInterestSelect = (interest) => {
@@ -327,6 +341,12 @@ function Profile() {
         lastName: formData.lastName,
         email: formData.email,
         department: formData.department,
+      division: formData.division,
+      currentYear: formData.currentYear,
+      tenthPercentage: formData.tenthPercentage,
+      twelfthPercentage: formData.twelfthPercentage,
+      currentlyPursuingInternship: formData.currentlyPursuingInternship,
+      internshipDetails: formData.internshipDetails,
         interests: formData.interests,
         skills: formData.skills,
         cgpa: formData.cgpa,
@@ -406,13 +426,14 @@ function Profile() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Name Fields */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <input
                 type="text"
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleInputChange}
-                placeholder="John"
+                placeholder="First Name"
                 className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
               />
               <input
@@ -427,13 +448,12 @@ function Profile() {
                 type="email"
                 name="email"
                 value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Email"
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                readOnly
+                className="w-full px-4 py-2 rounded border border-gray-300 bg-gray-100 focus:outline-none"
               />
             </div>
-            
-            {/* Department Field */}
+
+            {/* Department and Division Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="relative">
                 <select
@@ -443,20 +463,26 @@ function Profile() {
                   className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary appearance-none"
                   required
                 >
-                  <option value="" disabled>Select Your Department</option>
+                  <option value="" disabled>Select Department</option>
                   {AVAILABLE_DEPARTMENTS.map(dept => (
-                    <option key={dept} value={dept}>
-                      {dept}
-                    </option>
+                    <option key={dept} value={dept}>{dept}</option>
                   ))}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
                   <ChevronDown size={16} />
                 </div>
               </div>
-              <div></div> {/* Empty div to maintain grid balance */}
+              <input
+                type="text"
+                name="division"
+                value={formData.division}
+                onChange={handleInputChange}
+                placeholder="Division (e.g., A, B)"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+              />
             </div>
 
+            {/* Interests and Skills Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Interests */}
               <div className="relative" ref={interestsDropdownRef}>
@@ -591,18 +617,54 @@ function Profile() {
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* CGPA */}
+            {/* Education Percentage Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
-                type="text"
-                name="cgpa"
-                value={formData.cgpa}
+                type="number"
+                step="any"
+                name="tenthPercentage"
+                value={formData.tenthPercentage}
                 onChange={handleInputChange}
-                placeholder="CGPA"
+                placeholder="10th Percentage"
+                min="0"
+                max="100"
                 className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
               />
+              <input
+                type="number"
+                step="any"
+                name="twelfthPercentage"
+                value={formData.twelfthPercentage}
+                onChange={handleInputChange}
+                placeholder="12th Percentage"
+                min="0"
+                max="100"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+              />
+            </div>
 
-              {/* Passing Year */}
+            {/* Current Year, Passing Year, and CGPA Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <select
+                  name="currentYear"
+                  value={formData.currentYear}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary appearance-none"
+                  required
+                >
+                  <option value="" disabled>Select Current Year</option>
+                  <option value="First Year">First Year</option>
+                  <option value="Second Year">Second Year</option>
+                  <option value="Third Year">Third Year</option>
+                  <option value="Fourth Year">Fourth Year</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+                  <ChevronDown size={16} />
+                </div>
+              </div>
               <input
                 type="number"
                 name="passingYear"
@@ -611,6 +673,18 @@ function Profile() {
                 placeholder="Passing Year"
                 min="2024"
                 max="2099"
+                required
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+              />
+              <input
+                type="number"
+                name="cgpa"
+                value={formData.cgpa}
+                onChange={handleInputChange}
+                placeholder="CGPA"
+                step="0.01"
+                min="0"
+                max="10"
                 required
                 className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
               />
@@ -679,16 +753,32 @@ function Profile() {
               className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary resize-none"
             />
 
+            {/* Accepted Internships */}
+            <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
+              <h3 className="font-medium text-gray-700">Accepted Internships</h3>
+              {formData.internships && formData.internships.length > 0 ? (
+                <ul className="space-y-2">
+                  {formData.internships.map((internship, index) => (
+                    <li key={index} className="p-2 border-b last:border-b-0">
+                      <p className="font-semibold">{internship.title} at {internship.companyName}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">No accepted internships yet.</p>
+              )}
+            </div>
+
             <div className="flex items-center space-x-4">
               <button
                 type="button"
                 onClick={() => document.getElementById('resume').click()}
                 className="bg-primary text-white px-6 py-2 rounded hover:bg-primary-dark transition-colors"
               >
-                Upload Resume (Optional)
+                Upload Resume
               </button>
               <span className="text-gray-600">
-                {formData.resume ? formData.resume.name : 'In PDF Format (Optional)'}
+                {formData.resume ? formData.resume.name : 'In PDF Format'}
               </span>
               <input
                 id="resume"

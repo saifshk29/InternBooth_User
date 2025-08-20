@@ -1,0 +1,79 @@
+{
+  "users": [
+    {
+      "email": "priyasharma@gmail.com",
+      "password": "1234567890",
+      "displayName": "Priya Sharma"
+    },
+    {
+      "email": "rahulkumar@gmail.com",
+      "password": "1234567890",
+      "displayName": "Rahul Kumar"
+    },
+    {
+      "email": "anjalisingh@gmail.com",
+      "password": "1234567890",
+      "displayName": "Anjali Singh"
+    },
+    {
+      "email": "amittrivedi@gmail.com",
+      "password": "1234567890",
+      "displayName": "Amit Trivedi"
+    },
+    {
+      "email": "sunitaverma@gmail.com",
+      "password": "1234567890",
+      "displayName": "Sunita Verma"
+    },
+    {
+      "email": "vikaspatel@gmail.com",
+      "password": "1234567890",
+      "displayName": "Vikas Patel"
+    },
+    {
+      "email": "nehamishra@gmail.com",
+      "password": "1234567890",
+      "displayName": "Neha Mishra"
+    },
+    {
+      "email": "sanjayjoshi@gmail.com",
+      "password": "1234567890",
+      "displayName": "Sanjay Joshi"
+    },
+    {
+      "email": "kavitagupta@gmail.com",
+      "password": "1234567890",
+      "displayName": "Kavita Gupta"
+    },
+    {
+      "email": "manojyadav@gmail.com",
+      "password": "1234567890",
+      "displayName": "Manoj Yadav"
+    },
+    {
+      "email": "poojamehta@gmail.com",
+      "password": "1234567890",
+      "displayName": "Pooja Mehta"
+    },
+    {
+      "email": "rajeshreddy@gmail.com",
+      "password": "1234567890",
+      "displayName": "Rajesh Reddy"
+    },
+    {
+      "email": "deepikachopra@gmail.com",
+      "password": "1234567890",
+      "displayName": "Deepika Chopra"
+    },
+    {
+      "email": "arjunmalhotra@gmail.com",
+      "password": "1234567890",
+      "displayName": "Arjun Malhotra"
+    },
+    {
+      "email": "geetanjalirao@gmail.com",
+      "password": "1234567890",
+      "displayName": "Geetanjali Rao"
+    }
+  ]
+}
