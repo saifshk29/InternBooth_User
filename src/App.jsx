@@ -23,6 +23,7 @@ import InternshipDetailsFaculty from './pages/faculty/InternshipDetailsFaculty';
 import EditInternship from './pages/faculty/EditInternship';
 import ViewApplications from './pages/faculty/ViewApplications';
 import EvaluateQuizSubmissions from './pages/faculty/EvaluateQuizSubmissions';
+import AllStudents from './pages/faculty/AllStudents';
 
 import { useState, useEffect } from 'react';
 
@@ -224,6 +225,15 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['faculty']} requireProfileCompletion={false}>
                     <EditInternship />
+                  </ProtectedRoute>
+                } 
+              />
+
+              <Route 
+                path="/faculty/all-students" 
+                element={
+                  <ProtectedRoute allowedRoles={['faculty']} requireProfileCompletion={false}>
+                    <AllStudents />
                   </ProtectedRoute>
                 } 
               />

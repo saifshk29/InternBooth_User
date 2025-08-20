@@ -129,12 +129,16 @@ function EvaluateQuizSubmissions() {
     setProcessingAction(true);
     try {
       // 1. Update the quiz submission status
-      await updateDoc(doc(db, 'quizSubmissions', submissionId), {
+      const submissionRef = doc(db, 'quizSubmissions', submissionId);
+      await updateDoc(submissionRef, {
         status: 'approved',
-        feedback: feedbackText,
+        feedback: feedbackText.trim(),
         evaluatedAt: serverTimestamp(),
         evaluatedBy: currentUser.uid
       });
+
+      // Update application status to quiz approved
+      await updateApplicationStatus(applicationId, APPLICATION_STATUS.QUIZ_APPROVED);
       
       // 2. Update the application status using our utility function
       const result = await updateApplicationStatus(
@@ -236,13 +240,13 @@ function EvaluateQuizSubmissions() {
     try {
       // 1. Update the quiz submission status
       await updateDoc(doc(db, 'quizSubmissions', submissionId), {
-        status: 'approved',
+        status: 'approved', // Or 'selected_for_internship' if you have a specific status
         feedback: feedbackText,
         evaluatedAt: serverTimestamp(),
         evaluatedBy: currentUser.uid
       });
-      
-      // 2. Update the application status using our utility function
+
+      // 2. Update the application status using the utility function
       const result = await updateApplicationStatus(
         applicationId,
         APPLICATION_STATUS.SELECTED,
@@ -251,7 +255,7 @@ function EvaluateQuizSubmissions() {
         feedbackText,
         currentUser.uid
       );
-      
+
       if (!result.success) {
         throw new Error(result.error || 'Failed to update application status');
       }
