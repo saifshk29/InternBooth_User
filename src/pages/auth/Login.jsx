@@ -6,6 +6,7 @@ import LogoPrimary from '../../assets/LogoPrimary.png';
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, googleSignIn } = useAuth();
@@ -66,7 +67,7 @@ function Login() {
             
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 className="w-full px-4 py-3 rounded border border-gray-300 focus:outline-none focus:border-primary"
                 placeholder="Password"
                 value={password}
@@ -76,9 +77,10 @@ function Login() {
               <button
                 type="button"
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                onClick={() => {/* Toggle password visibility */}}
+                onClick={() => setShowPassword(prev => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                👁️
+                {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
 

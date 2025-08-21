@@ -21,6 +21,16 @@
   .input-field {
     @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
   }
+
+  /* Disable mouse wheel changing numbers */
+  .no-number-wheel::-webkit-outer-spin-button,
+  .no-number-wheel::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .no-number-wheel[type=number] {
+    -moz-appearance: textfield; /* Firefox */
+  }
 }
 
 /* Ensure proper layout with footer at bottom */

@@ -25,7 +25,12 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
     officeHours: '',
     duration: '',
     facultyName: '',
-    facultyDesignation: ''
+    facultyDesignation: '',
+    eligibilityType: 'cgpa',
+    eligibilityMinCgpa: '',
+    eligibilityMinPercentage: '',
+    eligibilityAllowedYears: [],
+    eligibilityNote: ''
   });
 
   // Domain selection states
@@ -35,6 +40,8 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
   // Skills selection states
   const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
   const [skillSearch, setSkillSearch] = useState('');
+
+  const AVAILABLE_YEARS = ['First Year', 'Second Year', 'Third Year', 'Fourth Year'];
 
   // Available domains
   const AVAILABLE_DOMAINS = [
@@ -97,7 +104,12 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
         officeHours: initialData.officeHours || '',
         duration: initialData.duration || '',
         facultyName: initialData.facultyName || '',
-        facultyDesignation: initialData.facultyDesignation || ''
+        facultyDesignation: initialData.facultyDesignation || '',
+        eligibilityType: initialData.eligibilityCriteria?.type || 'cgpa',
+        eligibilityMinCgpa: initialData.eligibilityCriteria?.minCgpa?.toString() || '',
+        eligibilityMinPercentage: initialData.eligibilityCriteria?.minPercentage?.toString() || '',
+        eligibilityAllowedYears: initialData.eligibilityCriteria?.allowedYears || [],
+        eligibilityNote: initialData.eligibilityCriteria?.note || ''
       });
     }
   }, [editMode, initialData]);
@@ -222,6 +234,15 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
     }));
   };
 
+  const toggleAllowedYear = (year) => {
+    setInternshipForm(prev => ({
+      ...prev,
+      eligibilityAllowedYears: prev.eligibilityAllowedYears.includes(year)
+        ? prev.eligibilityAllowedYears.filter(y => y !== year)
+        : [...prev.eligibilityAllowedYears, year]
+    }));
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -267,6 +288,21 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
         return;
       }
 
+      // Eligibility validation
+      if (internshipForm.eligibilityType === 'cgpa') {
+        if (internshipForm.eligibilityMinCgpa !== '' && (Number(internshipForm.eligibilityMinCgpa) < 0 || Number(internshipForm.eligibilityMinCgpa) > 10)) {
+          setFormError('Minimum CGPA must be between 0 and 10');
+          setSubmitting(false);
+          return;
+        }
+      } else if (internshipForm.eligibilityType === 'percentage') {
+        if (internshipForm.eligibilityMinPercentage !== '' && (Number(internshipForm.eligibilityMinPercentage) < 0 || Number(internshipForm.eligibilityMinPercentage) > 100)) {
+          setFormError('Minimum percentage must be between 0 and 100');
+          setSubmitting(false);
+          return;
+        }
+      }
+
       // Get dates for reference only (validation removed as requested)
       const firstRoundDate = new Date(internshipForm.firstRoundDate);
       const testDate = new Date(internshipForm.testDate);
@@ -309,7 +345,14 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
         location: internshipForm.location.trim(),
         startDate: new Date(internshipForm.startDate).toISOString(),
         stipend: internshipForm.stipend.trim(),
-        duration: internshipForm.duration.trim()
+        duration: internshipForm.duration.trim(),
+        eligibilityCriteria: {
+          type: internshipForm.eligibilityType,
+          minCgpa: internshipForm.eligibilityType === 'cgpa' && internshipForm.eligibilityMinCgpa !== '' ? Number(internshipForm.eligibilityMinCgpa) : null,
+          minPercentage: internshipForm.eligibilityType === 'percentage' && internshipForm.eligibilityMinPercentage !== '' ? Number(internshipForm.eligibilityMinPercentage) : null,
+          allowedYears: internshipForm.eligibilityAllowedYears || [],
+          note: internshipForm.eligibilityNote?.trim() || ''
+        }
       };
       
       if (editMode && initialData && initialData.id) {
@@ -349,7 +392,12 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
           officeHours: '',
           duration: '',
           facultyName: '',
-          facultyDesignation: ''
+          facultyDesignation: '',
+          eligibilityType: 'cgpa',
+          eligibilityMinCgpa: '',
+          eligibilityMinPercentage: '',
+          eligibilityAllowedYears: [],
+          eligibilityNote: ''
         });
         if (onSuccess) onSuccess();
       }
@@ -518,14 +566,113 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
             className="input-field"
             value={internshipForm.responsibilities}
             onChange={handleInputChange}
-            placeholder="Enter responsibilities, one per line:
-Develop responsive web applications
-Collaborate with design team
-Implement UI components"
+            placeholder={`Enter responsibilities, one per line:\nDevelop responsive web applications\nCollaborate with design team\nImplement UI components`}
             required
           />
         </div>
 
+        {/* Eligibility Criteria */}
+        <div className="mb-6 p-4 border rounded-md bg-gray-50">
+          <h4 className="text-md font-bold mb-3">Eligibility Criteria</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <span className="block text-gray-700 text-sm font-bold mb-2">Mode</span>
+              <div className="flex items-center gap-6">
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="eligibilityType"
+                    value="cgpa"
+                    checked={internshipForm.eligibilityType === 'cgpa'}
+                    onChange={handleInputChange}
+                  />
+                  <span>Minimum CGPA</span>
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="eligibilityType"
+                    value="percentage"
+                    checked={internshipForm.eligibilityType === 'percentage'}
+                    onChange={handleInputChange}
+                  />
+                  <span>Overall Percentage</span>
+                </label>
+              </div>
+            </div>
+            {internshipForm.eligibilityType === 'cgpa' ? (
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="eligibilityMinCgpa">
+                  Minimum CGPA
+                </label>
+                <input
+                  id="eligibilityMinCgpa"
+                  name="eligibilityMinCgpa"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="10"
+                  className="input-field no-number-wheel"
+                  value={internshipForm.eligibilityMinCgpa}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 7.0"
+                  onWheel={(e) => e.currentTarget.blur()}
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="eligibilityMinPercentage">
+                  Minimum Percentage (required in each of 10th, 12th, and CGPA×9.5)
+                </label>
+                <input
+                  id="eligibilityMinPercentage"
+                  name="eligibilityMinPercentage"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  className="input-field no-number-wheel"
+                  value={internshipForm.eligibilityMinPercentage}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 60"
+                  onWheel={(e) => e.currentTarget.blur()}
+                />
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <span className="block text-gray-700 text-sm font-bold mb-2">Allowed Years</span>
+              <div className="flex flex-wrap gap-3">
+                {AVAILABLE_YEARS.map((year) => (
+                  <label key={year} className="inline-flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={internshipForm.eligibilityAllowedYears.includes(year)}
+                      onChange={() => toggleAllowedYear(year)}
+                    />
+                    <span>{year}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="eligibilityNote">
+                Additional Notes (visible to students)
+              </label>
+              <textarea
+                id="eligibilityNote"
+                name="eligibilityNote"
+                rows="3"
+                className="input-field"
+                value={internshipForm.eligibilityNote}
+                onChange={handleInputChange}
+                placeholder="E.g., Only students with a CGPA of 7.0 or higher or overall percentage above 70 may apply."
+              />
+            </div>
+          </div>
+        </div>
+        
         <div className="mb-6">
           <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="skills">
             Required Skills*
@@ -647,11 +794,12 @@ Implement UI components"
               type="number"
               min="1"
               max="24"
-              className="input-field"
+              className="input-field no-number-wheel"
               value={internshipForm.duration}
               onChange={handleInputChange}
               placeholder="e.g., 3"
               required
+              onWheel={(e) => e.currentTarget.blur()}
             />
           </div>
         </div>

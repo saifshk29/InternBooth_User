@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import LogoPrimary from '/BridgeIntern/src/assets/LogoPrimary.png';
+import LogoPrimary from '../../assets/LogoPrimary.png';
 import { Home, Briefcase, LogIn, UserPlus, GraduationCap, Users, BookOpen, FileSpreadsheet, Mail, Phone, MapPin, Globe } from 'lucide-react';
 
 function Footer() {
