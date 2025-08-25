@@ -277,7 +277,7 @@ function QuizPage() {
             <li>Once you start, the timer will not stop.</li>
           </ul>
           <div className="flex justify-center">
-            <button onClick={() => setShowDisclaimer(false)} className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+            <button onClick={() => setShowDisclaimer(false)} className="btn-success">
               I Understand, Start Quiz
             </button>
           </div>
@@ -292,7 +292,7 @@ function QuizPage() {
         {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
         {success && <div className="bg-green-100 text-green-700 p-4 rounded-md mb-6">{success}</div>}
         {isBlocked && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{warningMessage}</div>}
-        <Link to="/student/dashboard" className="btn-primary mt-4">
+        <Link to="/student/dashboard" className="btn-info mt-4">
           Return to Dashboard
         </Link>
       </div>
@@ -354,7 +354,7 @@ function QuizPage() {
             </div>
             <button
               type="button"
-              className="btn-primary"
+              className={currentQuestionIndex < questions.length - 1 ? 'btn-info' : 'btn-success'}
               onClick={handleNextQuestion}
             >
               {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Submit'}

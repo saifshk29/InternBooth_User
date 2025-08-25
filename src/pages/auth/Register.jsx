@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import LogoPrimary from '../../assets/LogoPrimary.png';
 
 function Register() {
   const [email, setEmail] = useState('');
@@ -67,58 +68,65 @@ function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10 flex">
-      {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/20"></div>
-        <div className="relative z-10 text-center space-y-8 max-w-md">
-          <div className="space-y-6">
-            <h1 className="text-4xl font-bold text-text leading-tight">
-              Join the
-              <span className="block text-primary">InternBooth</span>
-              Community
-            </h1>
-            <p className="text-lg text-subtext">
-              Connect with top companies and discover your perfect internship opportunity.
-            </p>
+    <div className="min-h-[calc(100vh-64px)] flex">
+      {/* Left Side - Attractive Background */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        {/* Background gradient with subtle pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-background"></div>
+        
+        {/* Decorative geometric shapes */}
+        <div className="absolute top-20 left-20 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute bottom-32 right-16 w-24 h-24 bg-primary/20 rounded-full blur-xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-1/2 left-1/3 w-20 h-20 bg-primary/15 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        
+        {/* Abstract illustration */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative w-96 h-96">
+            {/* Main circle */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-primary/10 rounded-full blur-sm"></div>
+            <div className="absolute inset-4 bg-gradient-to-br from-primary/20 to-transparent rounded-full"></div>
+            
+            {/* Floating elements */}
+            <div className="absolute top-8 left-8 w-16 h-16 bg-white/20 rounded-2xl transform rotate-12 animate-bounce" style={{animationDelay: '0.5s'}}></div>
+            <div className="absolute bottom-8 right-8 w-12 h-12 bg-primary/30 rounded-xl transform -rotate-12 animate-bounce" style={{animationDelay: '1s'}}></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white/40 rounded-lg animate-pulse"></div>
+            
+            {/* Connection lines */}
+            <div className="absolute top-1/4 left-1/4 w-32 h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent transform rotate-45"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-32 h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent transform -rotate-45"></div>
           </div>
-          
-          {/* Registration journey illustration */}
-          <div className="relative w-80 h-64 mx-auto">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/30 rounded-3xl transform rotate-3"></div>
-            <div className="relative bg-surface rounded-2xl p-6 shadow-xl">
-              <div className="space-y-3">
-                <div className="text-center mb-4">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <span className="text-3xl">📝</span>
-                  </div>
-                  <div className="h-2 bg-primary/20 rounded w-3/4 mx-auto"></div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex flex-col items-center space-y-1">
-                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs">1</span>
-                    </div>
-                    <div className="h-1 bg-primary rounded w-12"></div>
-                  </div>
-                  <div className="flex-1 h-0.5 bg-gray-200 mx-2"></div>
-                  <div className="flex flex-col items-center space-y-1">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-gray-500 text-xs">2</span>
-                    </div>
-                    <div className="h-1 bg-gray-200 rounded w-12"></div>
-                  </div>
-                  <div className="flex-1 h-0.5 bg-gray-200 mx-2"></div>
-                  <div className="flex flex-col items-center space-y-1">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-gray-500 text-xs">3</span>
-                    </div>
-                    <div className="h-1 bg-gray-200 rounded w-12"></div>
-                  </div>
-                </div>
-                <div className="text-center pt-2">
-                  <p className="text-xs text-subtext">Start your journey today</p>
-                </div>
+        </div>
+
+        {/* Content overlay */}
+        <div className="relative z-10 flex flex-col justify-center h-full p-16 text-text">
+          <div className="max-w-lg space-y-8">
+            <div className="space-y-6">
+              <h1 className="text-5xl font-bold leading-tight">
+                Join the
+                <span className="block">
+                  <span className="text-primary">Intern</span>
+                  <span className="text-black">Booth</span>
+                </span>
+                Community
+              </h1>
+              <p className="text-xl text-subtext leading-relaxed">
+                Create your account and start connecting with organizations, mentors, and opportunities that match your career goals.
+              </p>
+            </div>
+
+            {/* Feature highlights */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                <span className="text-subtext">Student & Faculty accounts</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                <span className="text-subtext">Comprehensive profile building</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                <span className="text-subtext">Direct company connections</span>
               </div>
             </div>
           </div>
@@ -126,43 +134,42 @@ function Register() {
       </div>
 
       {/* Right Side - Register Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-background to-primary/5">
         <div className="w-full max-w-md">
-          <div className="bg-surface rounded-2xl p-8 shadow-xl border border-gray-100">
+          {/* Animated form card */}
+          <div className="bg-surface rounded-3xl p-8 shadow-2xl border border-gray-100 transform transition-all duration-700 animate-fade-in-up">
             {/* Mobile Logo */}
-            <div className="lg:hidden flex justify-center items-center mb-6">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-lg">IB</span>
-              </div>
+            <div className="lg:hidden flex justify-center items-center mb-8">
+              <img src={LogoPrimary} alt="InternBooth" className="h-12 w-auto mr-3" />
               <div className="text-xl font-bold">
                 <span className="text-primary">Intern</span>
                 <span className="text-black">Booth</span>
               </div>
             </div>
             
-            <div className="text-center mb-6">
-              <div className="mb-4">
+            <div className="text-center mb-8">
+              <div className="mb-6">
                 <span className="text-subtext">Already have an account? </span>
                 <Link to="/login" className="text-primary hover:text-primary-dark font-semibold transition-colors">
                   Sign In
                 </Link>
               </div>
-              <h2 className="text-3xl font-bold text-text mb-2">Create Account</h2>
-              <p className="text-subtext">Start your internship journey today</p>
+              <h2 className="text-4xl font-bold text-text mb-3">Create Account</h2>
+              <p className="text-subtext text-lg">Start your internship journey today</p>
             </div>
             
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm animate-fade-in">
                 {error}
               </div>
             )}
             
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-text text-sm font-medium mb-1">Email Address</label>
+              <div className="space-y-2">
+                <label className="block text-text text-sm font-medium">Email Address</label>
                 <input
                   type="email"
-                  className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 bg-gray-50"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300 bg-gray-50 hover:bg-white"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -171,12 +178,12 @@ function Register() {
               </div>
               
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-text text-sm font-medium mb-1">Password</label>
+                <div className="space-y-2">
+                  <label className="block text-text text-sm font-medium">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      className="w-full px-3 py-2.5 pr-10 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 bg-gray-50"
+                      className="w-full px-3 py-2.5 pr-10 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300 bg-gray-50 hover:bg-white"
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -192,12 +199,12 @@ function Register() {
                   </div>
                 </div>
                 
-                <div>
-                  <label className="block text-text text-sm font-medium mb-1">Confirm</label>
+                <div className="space-y-2">
+                  <label className="block text-text text-sm font-medium">Confirm</label>
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
-                      className="w-full px-3 py-2.5 pr-10 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 bg-gray-50"
+                      className="w-full px-3 py-2.5 pr-10 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300 bg-gray-50 hover:bg-white"
                       placeholder="Confirm"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
@@ -214,16 +221,16 @@ function Register() {
                 </div>
               </div>
               
-              <div>
-                <label className="block text-text text-sm font-medium mb-1">I am a:</label>
+              <div className="space-y-2">
+                <label className="block text-text text-sm font-medium">I am a:</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setRole('student')}
-                    className={`py-2.5 px-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
+                    className={`py-2.5 px-3 rounded-xl border-2 transition-all duration-300 text-sm font-medium focus:ring-2 focus:ring-offset-2 ${
                       role === 'student'
-                        ? 'border-primary bg-primary/5 text-primary'
-                        : 'border-gray-200 text-subtext hover:border-gray-300 bg-gray-50'
+                        ? 'btn-outline-primary'
+                        : 'btn-secondary'
                     }`}
                   >
                     🎓 Student
@@ -231,10 +238,10 @@ function Register() {
                   <button
                     type="button"
                     onClick={() => setRole('faculty')}
-                    className={`py-2.5 px-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
+                    className={`py-2.5 px-3 rounded-xl border-2 transition-all duration-300 text-sm font-medium focus:ring-2 focus:ring-offset-2 ${
                       role === 'faculty'
-                        ? 'border-primary bg-primary/5 text-primary'
-                        : 'border-gray-200 text-subtext hover:border-gray-300 bg-gray-50'
+                        ? 'btn-outline-primary'
+                        : 'btn-secondary'
                     }`}
                   >
                     👨‍🏫 Faculty
@@ -249,7 +256,9 @@ function Register() {
               
               <button
                 type="submit"
-                className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-200 transform hover:scale-[1.02]"
+                className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg focus:ring-2 focus:ring-offset-2 ${
+                  loading ? 'btn-disabled' : 'btn-success'
+                }`}
                 disabled={loading}
               >
                 {loading ? (
@@ -267,7 +276,7 @@ function Register() {
                   <div className="w-full border-t border-gray-200"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-surface text-subtext">Or Sign up with</span>
+                  <span className="px-4 bg-surface text-subtext">Or continue with</span>
                 </div>
               </div>
 
@@ -275,7 +284,9 @@ function Register() {
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
-                className="w-full border border-gray-200 rounded-lg py-3 flex items-center justify-center space-x-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200"
+                className={`w-full py-3 flex items-center justify-center space-x-3 transition-all duration-300 focus:ring-2 focus:ring-offset-2 ${
+                  loading ? 'btn-disabled' : 'btn-secondary'
+                }`}
                 disabled={loading}
               >
                 <img
@@ -283,7 +294,7 @@ function Register() {
                   alt="Google"
                   className="w-5 h-5"
                 />
-                <span className="font-medium text-text">Google</span>
+                <span className="font-medium">Google</span>
               </button>
 
             </form>

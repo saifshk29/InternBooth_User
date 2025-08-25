@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import LogoPrimary from '../../assets/LogoPrimary.png';
-import LogoDark from '../../assets/LogoDark.png';
-import { Bell } from 'lucide-react';
+import { Bell, LogOut } from 'lucide-react';
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -57,10 +56,11 @@ function Navbar() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">IB</span>
-              </div>
-              <span className="ml-2 text-xl font-bold text-text hidden sm:block">InternBooth</span>
+              <img src={LogoPrimary} alt="InternBooth" className="h-8 w-8" />
+              <span className="ml-2 text-xl font-bold hidden sm:block">
+                <span className="text-primary">Intern</span>
+                <span className="text-black">Booth</span>
+              </span>
             </Link>
           </div>
 
@@ -127,8 +127,9 @@ function Navbar() {
                 />
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark text-[14px] font-medium transition-all duration-200 transform hover:scale-[1.02]"
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-[14px] font-medium transition-all duration-200 transform hover:scale-[1.02] flex items-center gap-2"
                 >
+                  <LogOut size={16} />
                   Logout
                 </button>
               </div>
@@ -161,15 +162,23 @@ function Navbar() {
         </div>
       </div>
 
-      {/* Main Heading */}
-      <div className="w-full bg-gradient-to-r from-primary/5 to-primary/10 py-8 border-b border-gray-100">
-        <h1 className="text-[32px] font-bold text-center text-text">
-          {userData?.role === 'faculty' 
-            ? "Shaping Futures, Bridging Industries"
-            : "From College Halls To Industry Calls"
-          }
-        </h1>
-      </div>
+      {/* Main Heading - hidden on auth pages */}
+      {!isAuthPage && (
+        <div className="w-full bg-gradient-to-r from-primary/5 to-primary/10 py-6 border-b border-gray-100">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <div className="flex items-center gap-2">
+              <img src={LogoPrimary} alt="InternBooth" className="h-8 w-8" />
+              <div className="text-2xl sm:text-3xl font-bold">
+                <span className="text-primary">Intern</span>
+                <span className="text-black">Booth</span>
+              </div>
+            </div>
+            <div className="text-center text-text text-base sm:text-lg">
+              From College Halls To Industry Calls
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile menu */}
       {!isAuthPage && isMenuOpen && (
@@ -229,6 +238,13 @@ function Navbar() {
                 >
                   Profile
                 </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors flex items-center gap-2"
+                >
+                  <LogOut size={16} />
+                  Logout
+                </button>
               </>
             ) : (
               <>
@@ -260,6 +276,13 @@ function Navbar() {
                 >
                   AboutUS
                 </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors flex items-center gap-2"
+                >
+                  <LogOut size={16} />
+                  Logout
+                </button>
               </>
             )}
           </div>

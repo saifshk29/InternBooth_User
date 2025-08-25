@@ -9,7 +9,7 @@ function NotFound() {
         <p className="text-gray-600 mb-8">
           The page you are looking for does not exist or has been moved.
         </p>
-        <Link to="/" className="btn-primary">
+        <Link to="/" className="btn-info">
           Return to Home
         </Link>
       </div>

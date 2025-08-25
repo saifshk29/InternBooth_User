@@ -1123,10 +1123,17 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
           </p>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end space-x-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="btn-secondary"
+          >
+            Cancel
+          </button>
           <button
             type="submit"
-            className="btn-primary"
+            className={`${editMode ? 'btn-warning' : 'btn-success'} ${submitting ? 'btn-disabled' : ''}`}
             disabled={submitting}
           >
             {submitting ? (editMode ? 'Updating...' : 'Posting...') : (editMode ? 'Update Internship' : 'Post Internship')}

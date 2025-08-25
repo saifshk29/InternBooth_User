@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs, doc, getDoc, orderBy, limit, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, User, ClipboardList, ChevronRight, Trash2, GripVertical, Filter, CheckCircle, Award, XCircle, FileText, Clock } from 'lucide-react';
+import { Bell, User, ClipboardList, ChevronRight, Trash2, GripVertical, Filter, CheckCircle, Award, XCircle, FileText, Clock, HelpCircle } from 'lucide-react';
 
 function Dashboard() {
   const { currentUser } = useAuth();
@@ -520,7 +520,7 @@ function Dashboard() {
           </div>
           <div>
             <h1 className="text-2xl font-semibold">
-              Hola {studentData?.firstName} {studentData?.lastName} 👋
+              Hello {studentData?.firstName} {studentData?.lastName}!
             </h1>
             <p className="text-gray-600">{studentData?.department}</p>
             <p className="text-gray-600">{studentData?.college}</p>
@@ -552,7 +552,7 @@ function Dashboard() {
               {removedApplications.length > 0 && (
                 <button 
                   onClick={handleRestoreAllApplications}
-                  className="text-blue-500 hover:text-blue-700 transition-colors p-1 rounded-full hover:bg-blue-100"
+                  className="btn-outline-info btn-sm"
                   title="Restore all hidden applications"
                 >
                   Show Hidden
@@ -649,7 +649,7 @@ function Dashboard() {
                                           <CheckCircle className="h-4 w-4 text-green-500" /> : 
                                           round.status === 'failed' ? 
                                           <XCircle className="h-4 w-4 text-red-500" /> : 
-                                          <HelpCircleIcon className="h-4 w-4 text-gray-500" />
+                                          <HelpCircle className="h-4 w-4 text-gray-500" />
                                         }
                                         <p className="font-medium text-sm">Round {round.roundNumber} {
                                           round.status === 'passed' ? 'Passed' : 
@@ -708,14 +708,14 @@ function Dashboard() {
                         {application.status === 'selected' ? (
                           <button
                             onClick={() => handleAcceptOffer(application)}
-                            className="bg-green-500 text-white px-3 py-1 rounded-full text-sm hover:bg-green-600 transition-colors"
+                            className="btn-success btn-sm"
                           >
                             Accept Offer
                           </button>
                         ) : (
                           <button
                             onClick={(e) => handleRemoveApplication(e, application.id)}
-                            className="text-gray-400 hover:text-red-500 p-2"
+                            className="btn-outline-danger btn-sm"
                             title="Remove from list"
                           >
                             <Trash2 size={18} />
@@ -734,7 +734,7 @@ function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div 
               onClick={() => navigate('/student/profile')}
-              className="bg-[#6366F1] text-white rounded-lg p-6 cursor-pointer hover:bg-[#5558E6] transition-colors flex flex-col"
+              className="bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg p-6 cursor-pointer hover:from-primary-dark hover:to-primary transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex flex-col"
             >
               <User size={32} className="mb-4" />
               <h3 className="text-xl font-semibold mb-2">Edit Profile</h3>
@@ -745,7 +745,7 @@ function Dashboard() {
             </div>
             <div 
               onClick={() => navigate('/student/applications')}
-              className="bg-[#6366F1] text-white rounded-lg p-6 cursor-pointer hover:bg-[#5558E6] transition-colors flex flex-col"
+              className="bg-gradient-to-r from-success to-success-dark text-white rounded-lg p-6 cursor-pointer hover:from-success-dark hover:to-success transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex flex-col"
             >
               <ClipboardList size={32} className="mb-4" />
               <h3 className="text-xl font-semibold mb-2">My Applications</h3>

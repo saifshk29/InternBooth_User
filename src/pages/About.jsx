@@ -197,7 +197,7 @@ function About() {
             <p className="text-xl text-gray-600 mb-8">
               Join thousands of students who have already found their perfect internship match.
             </p>
-            <button className="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors">
+            <button className="btn-primary btn-lg">
               Start Your Journey
             </button>
           </motion.div>

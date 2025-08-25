@@ -4,7 +4,7 @@ import { storage, db } from '../../firebase/config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, updateDoc } from 'firebase/firestore';
 import { X } from 'lucide-react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 // Available options for interests, skills, and departments
 const AVAILABLE_INTERESTS = [
@@ -706,40 +706,57 @@ function Profile() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name Fields */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                placeholder="First Name"
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
-              />
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                placeholder="Last Name"
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
-              />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                readOnly
-                required
-                className="w-full px-4 py-2 rounded border border-gray-300 bg-gray-100 focus:outline-none"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  readOnly
+                  required
+                  className="w-full px-4 py-2 rounded border border-gray-300 bg-gray-100 focus:outline-none"
+                />
+              </div>
             </div>
 
             {/* Phone Number Field */}
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Phone Number <span className="text-red-500">*</span>
+              </label>
               <input
                 type="tel"
                 name="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
-                placeholder="Enter 10-digit phone number"
                 required
                 pattern="^[0-9]{10}$"
                 title="Enter a valid 10-digit phone number"
@@ -749,38 +766,49 @@ function Profile() {
 
             {/* Department and Division Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <select
-                  name="department"
-                  value={formData.department}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary appearance-none"
-                  required
-                >
-                  <option value="" disabled>Select Department</option>
-                  {AVAILABLE_DEPARTMENTS.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                  <ChevronDown size={16} />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Department <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    name="department"
+                    value={formData.department}
+                    onChange={handleInputChange}
+                    className="w-full px-4 pr-8 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary appearance-none"
+                    required
+                  >
+                    <option value="" disabled>Select Department</option>
+                    {AVAILABLE_DEPARTMENTS.map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                    <ChevronDown size={16} />
+                  </div>
                 </div>
               </div>
-              <input
-                type="text"
-                name="division"
-                value={formData.division}
-                onChange={handleInputChange}
-                placeholder="Division (e.g., A, B)"
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Division
+                </label>
+                <input
+                  type="text"
+                  name="division"
+                  value={formData.division}
+                  onChange={handleInputChange}
+                  placeholder="e.g., A, B"
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                />
+              </div>
             </div>
 
             {/* Interests and Skills Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Interests */}
               <div className="relative" ref={interestsDropdownRef}>
-                <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded min-h-[42px]">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Interests</label>
+                <div className="flex flex-wrap gap-2 p-2 pr-8 border border-gray-300 rounded min-h-[42px]">
                   {formData.interests.map(interest => (
                     <span 
                       key={interest}
@@ -808,13 +836,13 @@ function Profile() {
                     placeholder={formData.interests.length === 0 ? "Select or type interests" : ""}
                     className="border-0 outline-none flex-grow min-w-[100px]"
                   />
-                  <div 
-                    ref={interestsArrowRef}
-                    onClick={() => setShowInterestsDropdown(!showInterestsDropdown)} 
-                    className="cursor-pointer"
-                  >
-                    <ChevronDown />
-                  </div>
+                </div>
+                <div 
+                  ref={interestsArrowRef}
+                  onClick={() => setShowInterestsDropdown(!showInterestsDropdown)} 
+                  className="cursor-pointer absolute inset-y-0 right-2 flex items-center mt-6"
+                >
+                  <ChevronDown size={16} />
                 </div>
                 {showInterestsDropdown && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto">
@@ -847,7 +875,8 @@ function Profile() {
 
               {/* Skills */}
               <div className="relative" ref={skillsDropdownRef}>
-                <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded min-h-[42px]">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
+                <div className="flex flex-wrap gap-2 p-2 pr-8 border border-gray-300 rounded min-h-[42px]">
                   {formData.skills.map(skill => (
                     <span 
                       key={skill}
@@ -875,13 +904,13 @@ function Profile() {
                     placeholder={formData.skills.length === 0 ? "Select or type skills" : ""}
                     className="border-0 outline-none flex-grow min-w-[100px]"
                   />
-                  <div 
-                    ref={skillsArrowRef}
-                    onClick={() => setShowSkillsDropdown(!showSkillsDropdown)} 
-                    className="cursor-pointer"
-                  >
-                    <ChevronDown />
-                  </div>
+                </div>
+                <div 
+                  ref={skillsArrowRef}
+                  onClick={() => setShowSkillsDropdown(!showSkillsDropdown)} 
+                  className="cursor-pointer absolute inset-y-0 right-2 flex items-center mt-6"
+                >
+                  <ChevronDown size={16} />
                 </div>
                 {showSkillsDropdown && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto">
@@ -915,66 +944,81 @@ function Profile() {
 
             {/* Education Percentage Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="number"
-                step="any"
-                name="tenthPercentage"
-                value={formData.tenthPercentage}
-                onChange={handleInputChange}
-                placeholder="10th Percentage"
-                min="0"
-                max="100"
-                required
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
-                onWheel={(e) => e.currentTarget.blur()}
-              />
-              <input
-                type="number"
-                step="any"
-                name="twelfthPercentage"
-                value={formData.twelfthPercentage}
-                onChange={handleInputChange}
-                placeholder="12th Percentage"
-                min="0"
-                max="100"
-                required
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
-                onWheel={(e) => e.currentTarget.blur()}
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  10th Percentage <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  name="tenthPercentage"
+                  value={formData.tenthPercentage}
+                  onChange={handleInputChange}
+                  min="0"
+                  max="100"
+                  required
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
+                  onWheel={(e) => e.currentTarget.blur()}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  12th Percentage <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  name="twelfthPercentage"
+                  value={formData.twelfthPercentage}
+                  onChange={handleInputChange}
+                  min="0"
+                  max="100"
+                  required
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
+                  onWheel={(e) => e.currentTarget.blur()}
+                />
+              </div>
             </div>
 
             {/* Current Year, Passing Year, and CGPA Fields */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <select
-                  name="currentYear"
-                  value={formData.currentYear}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary appearance-none"
-                  required
-                >
-                  <option value="" disabled>Select Current Year</option>
-                  <option value="First Year">First Year</option>
-                  <option value="Second Year">Second Year</option>
-                  <option value="Third Year">Third Year</option>
-                  <option value="Fourth Year">Fourth Year</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                  <ChevronDown size={16} />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Current Year <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    name="currentYear"
+                    value={formData.currentYear}
+                    onChange={handleInputChange}
+                    className="w-full px-4 pr-8 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary appearance-none"
+                    required
+                  >
+                    <option value="" disabled>Select Current Year</option>
+                    <option value="First Year">First Year</option>
+                    <option value="Second Year">Second Year</option>
+                    <option value="Third Year">Third Year</option>
+                    <option value="Fourth Year">Fourth Year</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                    <ChevronDown size={16} />
+                  </div>
                 </div>
               </div>
               <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Passing Year <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   name="passingYear"
                   value={formData.passingYear}
                   onChange={handleInputChange}
-                  placeholder="Passing Year"
                   required
                   className="w-full px-4 py-2 pr-8 rounded border border-gray-300 focus:outline-none focus:border-primary"
                   readOnly
                 />
-                <div className="absolute right-1 top-0 h-full flex flex-col">
+                <div className="absolute right-1 top-5 h-[calc(100%-20px)] flex flex-col">
                   <button
                     type="button"
                     onClick={() => {
@@ -985,7 +1029,7 @@ function Profile() {
                     }}
                     className="flex-1 px-1 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors text-xs"
                   >
-                    ▲
+                    <ChevronUp size={16} />
                   </button>
                   <button
                     type="button"
@@ -997,44 +1041,52 @@ function Profile() {
                     }}
                     className="flex-1 px-1 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors text-xs"
                   >
-                    ▼
+                    <ChevronDown size={16} />
                   </button>
                 </div>
               </div>
-              <input
-                type="number"
-                name="cgpa"
-                value={formData.cgpa}
-                onChange={handleInputChange}
-                placeholder="CGPA"
-                step="0.01"
-                min="0"
-                max="10"
-                required
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
-                onWheel={(e) => e.currentTarget.blur()}
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  CGPA <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="cgpa"
+                  value={formData.cgpa}
+                  onChange={handleInputChange}
+                  step="0.01"
+                  min="0"
+                  max="10"
+                  required
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
+                  onWheel={(e) => e.currentTarget.blur()}
+                />
+              </div>
             </div>
 
             {/* Replace the certificates input with new structure */}
             <div className="space-y-4">
               <div className="flex gap-4">
-                <input
-                  type="text"
-                  name="title"
-                  value={certificateInput.title}
-                  onChange={handleCertificateInputChange}
-                  placeholder="Certificate Title"
-                  className="flex-1 px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
-                />
-                <input
-                  type="url"
-                  name="link"
-                  value={certificateInput.link}
-                  onChange={handleCertificateInputChange}
-                  placeholder="Certificate Link"
-                  className="flex-1 px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
-                />
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Certificate Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={certificateInput.title}
+                    onChange={handleCertificateInputChange}
+                    className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Certificate Link</label>
+                  <input
+                    type="url"
+                    name="link"
+                    value={certificateInput.link}
+                    onChange={handleCertificateInputChange}
+                    className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                  />
+                </div>
                 
                 <button
                   type="button"
@@ -1074,98 +1126,118 @@ function Profile() {
             <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
               <h3 className="font-medium text-gray-700">Profiles & Achievements</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="number"
-                  step="0.01"
-                  name="cocubesScore"
-                  value={formData.cocubesScore}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CoCubes Score <span className="text-red-500">*</span></label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="cocubesScore"
+                    value={formData.cocubesScore}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
+                    onWheel={(e) => e.currentTarget.blur()}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">GitHub Profile Link <span className="text-red-500">*</span></label>
+                  <input
+                    type="url"
+                    name="githubLink"
+                    value={formData.githubLink}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn Profile Link <span className="text-red-500">*</span></label>
+                  <input
+                    type="url"
+                    name="linkedinLink"
+                    value={formData.linkedinLink}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CodeChef Profile Link <span className="text-red-500">*</span></label>
+                  <input
+                    type="url"
+                    name="codechefLink"
+                    value={formData.codechefLink}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CodeChef Rating</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    name="codechefRating"
+                    value={formData.codechefRating}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
+                    onWheel={(e) => e.currentTarget.blur()}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">LeetCode Profile Link <span className="text-red-500">*</span></label>
+                  <input
+                    type="url"
+                    name="leetcodeLink"
+                    value={formData.leetcodeLink}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">LeetCode Rating</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    name="leetcodeRating"
+                    value={formData.leetcodeRating}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
+                    onWheel={(e) => e.currentTarget.blur()}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Technical Achievements</label>
+                <textarea
+                  name="achievementsTechnical"
+                  value={formData.achievementsTechnical}
                   onChange={handleInputChange}
-                  placeholder="CoCubes Score"
-                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
-                  onWheel={(e) => e.currentTarget.blur()}
-                />
-                <input
-                  type="url"
-                  name="githubLink"
-                  value={formData.githubLink}
-                  onChange={handleInputChange}
-                  placeholder="GitHub Profile Link"
-                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
-                />
-                <input
-                  type="url"
-                  name="linkedinLink"
-                  value={formData.linkedinLink}
-                  onChange={handleInputChange}
-                  placeholder="LinkedIn Profile Link"
-                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
-                />
-                <input
-                  type="url"
-                  name="codechefLink"
-                  value={formData.codechefLink}
-                  onChange={handleInputChange}
-                  placeholder="CodeChef Profile Link"
-                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
-                />
-                <input
-                  type="number"
-                  step="1"
-                  min="0"
-                  name="codechefRating"
-                  value={formData.codechefRating}
-                  onChange={handleInputChange}
-                  placeholder="CodeChef Rating"
-                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
-                  onWheel={(e) => e.currentTarget.blur()}
-                />
-                <input
-                  type="url"
-                  name="leetcodeLink"
-                  value={formData.leetcodeLink}
-                  onChange={handleInputChange}
-                  placeholder="LeetCode Profile Link"
-                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
-                />
-                <input
-                  type="number"
-                  step="1"
-                  min="0"
-                  name="leetcodeRating"
-                  value={formData.leetcodeRating}
-                  onChange={handleInputChange}
-                  placeholder="LeetCode Rating"
-                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
-                  onWheel={(e) => e.currentTarget.blur()}
+                  rows="3"
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary resize-none"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Personal Achievements</label>
+                <textarea
+                  name="achievementsPersonal"
+                  value={formData.achievementsPersonal}
+                  onChange={handleInputChange}
+                  rows="3"
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary resize-none"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Previous Projects <span className="text-red-500">*</span></label>
               <textarea
-                name="achievementsTechnical"
-                value={formData.achievementsTechnical}
+                name="previousProjects"
+                value={formData.previousProjects}
                 onChange={handleInputChange}
-                placeholder="Technical Achievements (e.g., hackathons, contests, publications)"
-                rows="3"
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary resize-none"
-              />
-              <textarea
-                name="achievementsPersonal"
-                value={formData.achievementsPersonal}
-                onChange={handleInputChange}
-                placeholder="Personal Achievements (e.g., leadership roles, community work)"
-                rows="3"
+                rows="4"
+                required
                 className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary resize-none"
               />
             </div>
-
-            <textarea
-              name="previousProjects"
-              value={formData.previousProjects}
-              onChange={handleInputChange}
-              placeholder="Previous Projects(With Explanation)"
-              rows="4"
-              required
-              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary resize-none"
-            />
 
             {/* Accepted Internships */}
             <div className="space-y-4 p-4 border border-gray-200 rounded-lg">

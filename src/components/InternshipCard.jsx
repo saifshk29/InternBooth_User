@@ -82,7 +82,7 @@ const InternshipCard = ({ internship }) => {
           <div>
             <Link
               to={`/internships/${id}`}
-              className="btn-primary block text-center text-sm sm:text-base px-3 py-1 sm:px-4 sm:py-2"
+              className="btn-info btn-sm"
             >
               View Details
             </Link>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -29,6 +30,18 @@ function FacultyProfile() {
   });
 
   const [profilePicture, setProfilePicture] = useState(null);
+
+  // Department options (same as student side) plus Training and Placement Cell
+  const DEPARTMENTS = [
+    'Computer Science',
+    'Information Technology',
+    'Electrical Engineering',
+    'Electronics and Telecommunication',
+    'Mechanical Engineering',
+    'Civil Engineering',
+    'Artificial Intelligence',
+    'Training and Placement Cell'
+  ];
 
   useEffect(() => {
     async function loadFacultyData() {
@@ -222,15 +235,24 @@ function FacultyProfile() {
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="department">
                 Department*
               </label>
-              <input
-                id="department"
-                name="department"
-                type="text"
-                className="input-field"
-                value={formData.department}
-                onChange={handleInputChange}
-                required
-              />
+              <div className="relative">
+                <select
+                  id="department"
+                  name="department"
+                  className="input-field appearance-none pr-8"
+                  value={formData.department}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="" disabled>Select Department</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                  <ChevronDown size={16} />
+                </div>
+              </div>
             </div>
 
             <div>
@@ -350,10 +372,17 @@ function FacultyProfile() {
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end">
+          <div className="flex justify-end space-x-4">
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              className="btn-secondary"
+            >
+              Back
+            </button>
             <button
               type="submit"
-              className="btn-primary"
+              className={`btn-success ${saving ? 'btn-disabled' : ''}`}
               disabled={saving}
             >
               {saving ? 'Saving...' : 'Save Profile'}
