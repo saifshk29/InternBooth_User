@@ -4,8 +4,76 @@ import { db } from '../../firebase/config';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 import { getStatusLabel } from '../../utils/applicationUtils';
 
-const YEARS = ['First Year', 'Second Year', 'Third Year', 'Fourth Year'];
-const DIVISIONS = ['A', 'B', 'C'];
+const YEARS = ['All Years', 'First Year', 'Second Year', 'Third Year', 'Fourth Year'];
+const DIVISIONS = ['All Divisions', 'A', 'B', 'C'];
+const DEPARTMENTS = [
+  'Computer Science',
+  'Information Technology',
+  'Electrical Engineering',
+  'Electronics and Telecommunication',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Artificial Intelligence'
+];
+
+function maskEmail(email) {
+  if (!email) return 'N/A';
+  const parts = String(email).split('@');
+  if (parts.length !== 2) return 'N/A';
+  const local = parts[0];
+  const domain = parts[1];
+  const visible = local.slice(0, Math.min(2, local.length));
+  const masked = '*'.repeat(Math.max(0, local.length - visible.length));
+  return `${visible}${masked}@${domain}`;
+}
+
+function maskPhone(phone) {
+  if (!phone) return 'N/A';
+  const digits = String(phone).replace(/\D/g, '');
+  if (digits.length <= 4) return digits;
+  return `${'*'.repeat(digits.length - 4)}${digits.slice(-4)}`;
+}
+
+// Function to normalize department names for display
+function normalizeDepartmentName(department) {
+  if (!department) return 'N/A';
+  const dept = department.trim();
+  const entcVariants = [
+    'ENTC',
+    'Electronics & communication',
+    'Electronics & Communication',
+    'Electronics and Communication',
+    'Electronics & Comm',
+    'E&TC'
+  ];
+  
+  if (entcVariants.some(variant => variant.toLowerCase() === dept.toLowerCase())) {
+    return 'ELECTRONICS AND TELECOMMUNICATION';
+  }
+  
+  return dept;
+}
+
+// Function to check if a department matches the selected filter
+function departmentMatches(studentDepartment, selectedDepartment) {
+  if (selectedDepartment === 'All Departments') return true;
+  
+  // If filtering for Electronics and Telecommunication, include all ENTC variants
+  if (selectedDepartment === 'Electronics and Telecommunication') {
+    const entcVariants = [
+      'ENTC',
+      'Electronics & communication',
+      'Electronics & Communication',
+      'Electronics and Communication',
+      'Electronics & Comm',
+      'E&TC',
+      'Electronics and Telecommunication'
+    ];
+    return entcVariants.some(variant => variant.toLowerCase() === (studentDepartment || '').toLowerCase());
+  }
+  
+  return studentDepartment === selectedDepartment;
+}
 
 // This is a new component for a single student row
 function StudentRow({ student }) {
@@ -36,7 +104,9 @@ function StudentRow({ student }) {
             <div className="p-4 bg-gray-100">
               <h4 className="font-bold text-md mb-2">Full Details</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div><strong>Email:</strong> {student.email}</div>
+                <div><strong>Email:</strong> {maskEmail(student.email)}</div>
+                <div><strong>Phone:</strong> {maskPhone(student.phoneNumber)}</div>
+                <div><strong>Department:</strong> {normalizeDepartmentName(student.department)}</div>
                 <div><strong>Passing Year:</strong> {student.passingYear}</div>
                 <div><strong>Skills:</strong> {student.skills?.join(', ') || 'N/A'}</div>
                 <div><strong>Interests:</strong> {student.interests?.join(', ') || 'N/A'}</div>
@@ -74,6 +144,7 @@ function AllStudents() {
   const [error, setError] = useState('');
   const [selectedYear, setSelectedYear] = useState(YEARS[0]);
   const [selectedDivision, setSelectedDivision] = useState(DIVISIONS[0]);
+  const [selectedDepartment, setSelectedDepartment] = useState('All Departments');
 
   useEffect(() => {
     setLoading(true);
@@ -148,9 +219,87 @@ function AllStudents() {
         applications: applicationsByStudent[student.id] || [],
       }))
       .filter(student => 
-        student.currentYear === selectedYear && student.division === selectedDivision
+        (selectedYear === 'All Years' || student.currentYear === selectedYear) &&
+        (selectedDivision === 'All Divisions' || student.division === selectedDivision) &&
+        departmentMatches(student.department, selectedDepartment)
       );
-  }, [allStudents, applications, internships, quizSubmissions, selectedYear, selectedDivision]);
+  }, [allStudents, applications, internships, quizSubmissions, selectedYear, selectedDivision, selectedDepartment]);
+
+  const toCSVValue = (value) => {
+    if (value === null || value === undefined) return '""';
+    const str = String(value).replace(/"/g, '""').replace(/\r?\n|\r/g, ' ');
+    return `"${str}"`;
+  };
+
+  const handleExport = () => {
+    const headers = [
+      'Name',
+      'Email',
+      'Phone',
+      'Year',
+      'Department',
+      'Division',
+      '10th %',
+      '12th %',
+      'CGPA',
+      'Interning',
+      'Internship Company',
+      'Internship Duration',
+      'Internship Stipend',
+      'Skills',
+      'Interests',
+      'Passing Year',
+      'Projects',
+      'Applications'
+    ];
+
+    const rows = filteredStudents.map((student) => {
+      const internship = student.internshipDetails || {};
+      const applicationsText = (student.applications || [])
+        .map((app) => `${app.internshipTitle}: ${getStatusLabel(app)}`)
+        .join(' | ');
+      const phoneDigits = String(student.phoneNumber || '').replace(/\D/g, '');
+      const excelPhone = phoneDigits ? `\t+91${phoneDigits}` : '';
+
+      return [
+        `${student.firstName || ''} ${student.lastName || ''}`.trim(),
+        student.email || '',
+        excelPhone,
+        student.currentYear || '',
+        normalizeDepartmentName(student.department) || '',
+        student.division || '',
+        student.tenthPercentage ?? '',
+        student.twelfthPercentage ?? '',
+        student.cgpa ?? '',
+        student.currentlyPursuingInternship || '',
+        internship.companyName || '',
+        internship.duration || '',
+        internship.stipend || '',
+        (student.skills || []).join(', '),
+        (student.interests || []).join(', '),
+        student.passingYear ?? '',
+        student.previousProjects || '',
+        applicationsText
+      ];
+    });
+
+    const csvContent = '\ufeff' + [
+      headers.map(toCSVValue).join(','),
+      ...rows.map((r) => r.map(toCSVValue).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    const yearLabel = selectedYear === 'All Years' ? 'AllYears' : selectedYear.replace(' ', '');
+    const divisionLabel = selectedDivision === 'All Divisions' ? 'AllDivisions' : selectedDivision;
+    link.download = `students_${yearLabel}_${divisionLabel}_${timestamp}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
@@ -172,10 +321,34 @@ function AllStudents() {
           <div className="flex border-b">
             {DIVISIONS.map(division => (
               <button key={division} onClick={() => setSelectedDivision(division)} className={`px-6 py-2 -mb-px text-sm font-medium ${selectedDivision === division ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-primary'}`}>
-                Division {division}
+                {division === 'All Divisions' ? 'All Divisions' : `Division ${division}`}
               </button>
             ))}
           </div>
+        </div>
+        <div className="mt-4">
+          <h2 className="text-lg font-semibold mb-2 text-gray-700">Select Department</h2>
+          <div className="relative max-w-md">
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary appearance-none"
+            >
+              <option value="All Departments">All Departments</option>
+              {DEPARTMENTS.map(dept => (
+                <option key={dept} value={dept}>{dept}</option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+              <ChevronDownIcon className="h-5 w-5" />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex justify-end">
+          <button onClick={handleExport} className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark">
+            Export to Excel
+          </button>
         </div>
       </div>
 

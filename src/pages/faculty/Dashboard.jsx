@@ -281,10 +281,23 @@ function Dashboard() {
                         </div>
                       </div>
 
-                      <div className="flex items-center mb-4">
-                        <span className="bg-secondary bg-opacity-10 text-secondary text-xs px-2 py-1 rounded mr-2">
-                          {internship.domains.join(', ')}
-                        </span>
+                      <div className="flex flex-wrap items-center gap-2 mb-4">
+                        {internship.departments && internship.departments.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            <span className="text-xs text-gray-600 font-medium">Departments:</span>
+                            {internship.departments.map(dept => (
+                              <span key={dept} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                {dept}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex flex-wrap gap-1">
+                          <span className="text-xs text-gray-600 font-medium">Domains:</span>
+                          <span className="bg-secondary bg-opacity-10 text-secondary text-xs px-2 py-1 rounded">
+                            {internship.domains.join(', ')}
+                          </span>
+                        </div>
                         <span className="text-gray-500 text-xs">
                           Posted on {new Date(internship.postedDate).toLocaleDateString()}
                         </span>

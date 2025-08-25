@@ -51,13 +51,16 @@ function Navbar() {
   };
 
   return (
-    <nav id="navbar" className="bg-white shadow-sm">
+    <nav id="navbar" className="bg-surface shadow-lg border-b border-gray-100">
       <div className="max-w-[1280px] mx-auto sm:px-6 lg:px-8">
         <div className="grid grid-cols-[200px_1fr_200px] items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link to="/">
-              <img src={LogoDark} alt="BridgeIntern" className="h-12 w-10" />
+            <Link to="/" className="flex items-center">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-lg">IB</span>
+              </div>
+              <span className="ml-2 text-xl font-bold text-text hidden sm:block">InternBooth</span>
             </Link>
           </div>
 
@@ -108,23 +111,23 @@ function Navbar() {
           {currentUser && !isAuthPage && (
             <div className="hidden md:flex items-center justify-end gap-5">
               {/* Notification Bell */}
-              <button className="text-gray-600 hover:text-primary">
-                <Bell />
+              <button className="text-subtext hover:text-primary transition-colors p-2 rounded-lg hover:bg-gray-50">
+                <Bell size={20} />
               </button>
 
               {/* User Profile */}
-              <div className="flex items-center gap-4">
-                <Link to="/student/profile" className="text-text text-[18px] font-medium select-none hover:text-primary transition-colors">
-                  {userData?.firstName  || ''}
+              <div className="flex items-center gap-3">
+                <Link to="/student/profile" className="text-text text-[16px] font-medium select-none hover:text-primary transition-colors">
+                  {userData?.firstName || ''}
                 </Link>
                 <img 
                   src={userData?.profilePictureURL || `https://ui-avatars.com/api/?name=${userData?.firstName || 'U'}+${userData?.lastName || ''}`}
                   alt="Profile" 
-                  className="h-8 w-8 rounded-full object-cover"
+                  className="h-9 w-9 rounded-full object-cover border-2 border-gray-100"
                 />
                 <button
                   onClick={handleLogout}
-                  className="p-2 bg-primary text-white rounded-md hover:text-primary hover:bg-background text-[16px] font-medium"
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark text-[14px] font-medium transition-all duration-200 transform hover:scale-[1.02]"
                 >
                   Logout
                 </button>
@@ -159,8 +162,8 @@ function Navbar() {
       </div>
 
       {/* Main Heading */}
-      <div className="w-full bg-white py-6">
-        <h1 className="text-[35px] font-semibold text-center">
+      <div className="w-full bg-gradient-to-r from-primary/5 to-primary/10 py-8 border-b border-gray-100">
+        <h1 className="text-[32px] font-bold text-center text-text">
           {userData?.role === 'faculty' 
             ? "Shaping Futures, Bridging Industries"
             : "From College Halls To Industry Calls"

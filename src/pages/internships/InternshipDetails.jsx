@@ -57,6 +57,23 @@ function InternshipDetails() {
     fetchInternshipData();
   }, [id]);
 
+  // Fetch user data to evaluate eligibility
+  useEffect(() => {
+    async function fetchUser() {
+      if (!currentUser || userRole !== 'student') {
+        setUserData(null);
+        return;
+      }
+      try {
+        const data = await getUserData(currentUser.uid);
+        setUserData(data || null);
+      } catch (e) {
+        console.error('Failed to load user data', e);
+      }
+    }
+    fetchUser();
+  }, [currentUser, userRole, getUserData]);
+
   // Fetch other internships
   useEffect(() => {
     async function fetchOtherInternships() {
@@ -118,6 +135,39 @@ function InternshipDetails() {
     }
   }, [appliedInternshipIds, id]);
 
+  const isEligible = (() => {
+    if (!internship) return true; // default allow viewing
+    const crit = internship.eligibilityCriteria || {};
+    const type = crit.type || 'cgpa';
+    const minCgpa = typeof crit.minCgpa === 'number' ? crit.minCgpa : null;
+    const minPercentage = typeof crit.minPercentage === 'number' ? crit.minPercentage : null;
+    const allowedYears = Array.isArray(crit.allowedYears) ? crit.allowedYears : [];
+
+    if (!userData || userRole !== 'student') return true; // don't block non-students here
+
+    const userCgpa = Number(userData.cgpa);
+    const userYear = userData.currentYear;
+    const tenth = Number(userData.tenthPercentage);
+    const twelfth = Number(userData.twelfthPercentage);
+
+    if (allowedYears.length > 0 && userYear && !allowedYears.includes(userYear)) return false;
+
+    if (type === 'percentage') {
+      // Require all three components to be present and >= minPercentage
+      if (minPercentage === null) return true;
+      if (Number.isNaN(tenth) || Number.isNaN(twelfth) || Number.isNaN(userCgpa)) return false;
+      const cgpaPercent = userCgpa * 9.5;
+      if (tenth < minPercentage) return false;
+      if (twelfth < minPercentage) return false;
+      if (cgpaPercent < minPercentage) return false;
+      return true;
+    }
+
+    // default cgpa-based
+    if (minCgpa !== null && !Number.isNaN(userCgpa) && userCgpa < minCgpa) return false;
+    return true;
+  })();
+
   const handleApply = async () => {
     if (submitting) return; // Prevent double submit
     setSubmitting(true);
@@ -129,6 +179,12 @@ function InternshipDetails() {
     
     if (userRole !== 'student') {
       setError('Only students can apply for internships');
+      setSubmitting(false);
+      return;
+    }
+
+    if (!isEligible) {
+      setError('You are not eligible to apply for this internship based on the eligibility criteria.');
       setSubmitting(false);
       return;
     }
@@ -296,6 +352,7 @@ function InternshipDetails() {
 
   const isApplicationOpen = internship.firstRoundDate ? new Date(internship.firstRoundDate) > new Date() : false;
   const safeDomains = Array.isArray(internship.domains) ? internship.domains : [];
+  const crit = internship.eligibilityCriteria || {};
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 rounded-lg shadow-lg overflow-hidden min-h-screen p-4 lg:p-12">
@@ -338,6 +395,29 @@ function InternshipDetails() {
                     <li>No specific responsibilities listed</li>
                   )}
                 </ul>
+              </div>
+
+              {/* Eligibility Criteria */}
+              <div className="mb-8">
+                <h2 className="text-lg font-bold mb-2">Eligibility Criteria:</h2>
+                {(crit.minCgpa || crit.minPercentage || (crit.allowedYears && crit.allowedYears.length > 0) || crit.note) ? (
+                  <ul className="list-disc list-inside space-y-2 text-gray-700">
+                    {crit.type === 'percentage' && typeof crit.minPercentage === 'number' && (
+                      <li>Minimum Percentage: {crit.minPercentage}% in each of 10th, 12th, and CGPA×9.5</li>
+                    )}
+                    {(crit.type !== 'percentage' && typeof crit.minCgpa === 'number') && (
+                      <li>Minimum CGPA: {crit.minCgpa}</li>
+                    )}
+                    {Array.isArray(crit.allowedYears) && crit.allowedYears.length > 0 && (
+                      <li>Allowed Years: {crit.allowedYears.join(', ')}</li>
+                    )}
+                    {crit.note && (
+                      <li>{crit.note}</li>
+                    )}
+                  </ul>
+                ) : (
+                  <p className="text-gray-600">No specific eligibility criteria mentioned.</p>
+                )}
               </div>
 
               {/* Required Skills */}
@@ -416,13 +496,20 @@ function InternshipDetails() {
                   </Link>
                 </div>
               ) : (
-                <button
-                  onClick={handleApply}
-                  className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-2xl"
-                  disabled={submitting}
-                >
-                  {submitting ? 'Applying...' : 'APPLY'}
-                </button>
+                <>
+                  {!isEligible && (
+                    <div className="bg-yellow-100 text-yellow-800 p-4 rounded-2xl mb-3">
+                      You are not eligible to apply for this internship based on the eligibility criteria.
+                    </div>
+                  )}
+                  <button
+                    onClick={handleApply}
+                    className={`w-full font-bold py-3 px-4 rounded-2xl ${isEligible ? 'bg-primary hover:bg-primary-dark text-white' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
+                    disabled={submitting || !isEligible}
+                  >
+                    {submitting ? 'Applying...' : 'APPLY'}
+                  </button>
+                </>
               )}
             </div>
           </div>

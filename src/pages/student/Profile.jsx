@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { storage, db } from '../../firebase/config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -8,14 +8,92 @@ import { ChevronDown } from 'lucide-react';
 
 // Available options for interests, skills, and departments
 const AVAILABLE_INTERESTS = [
-  'Web Development',
-  'Mobile Development',
-  'AI/ML',
-  'Data Science',
+  // Mechanical Engineering
+  'Design Engineering',
+  'Thermal Engineering',
+  'Manufacturing & Production',
+  'Mechatronics',
+  'CAD/CAM & Robotics',
+  'Fluid Mechanics & Hydraulics',
+  'Automotive Engineering',
+  'Aerospace Engineering',
+  'Energy Systems & Power Plants',
+  'Industrial Engineering',
+  
+  // Civil Engineering
+  'Structural Engineering',
+  'Geotechnical Engineering',
+  'Transportation Engineering',
+  'Environmental Engineering',
+  'Construction Management',
+  'Water Resources Engineering',
+  'Surveying & Geoinformatics',
+  'Coastal & Offshore Engineering',
+  'Urban Planning & Smart Cities',
+  'Earthquake Engineering',
+  
+  // Computer Science
+  'Algorithms & Data Structures',
+  'Software Development',
+  'Database Systems',
+  'Operating Systems',
+  'Computer Networks',
+  'Cybersecurity',
   'Cloud Computing',
-  'DevOps',
-  'UI/UX Design',
-  'Cybersecurity'
+  'Artificial Intelligence',
+  'Machine Learning',
+  'Data Science',
+  'Computer Graphics & AR/VR',
+  'Distributed Systems',
+  'Theory of Computation',
+  
+  // Information Technology
+  'Web Development',
+  'Mobile App Development',
+  'Software Engineering',
+  'Information Security',
+  'Cloud & DevOps',
+  'Big Data Analytics',
+  'Database Management',
+  'IT Infrastructure & Networking',
+  'E-commerce & ERP Systems',
+  'Human-Computer Interaction',
+  
+  // Electronics & Communication
+  'VLSI Design',
+  'Embedded Systems',
+  'Digital Signal Processing (DSP)',
+  'Control Systems',
+  'Communication Systems (Wireless, Optical, Satellite)',
+  'Antennas & Microwave Engineering',
+  'Internet of Things (IoT)',
+  'Robotics & Automation',
+  'Nanoelectronics',
+  'Power Electronics',
+  
+  // Artificial Intelligence
+  'Machine Learning',
+  'Deep Learning',
+  'Natural Language Processing (NLP)',
+  'Computer Vision',
+  'Reinforcement Learning',
+  'Neural Networks',
+  'AI in Robotics',
+  'Explainable AI',
+  'AI in Healthcare / Finance / IoT',
+  'Data Mining & Knowledge Discovery',
+  
+  // Electrical Engineering
+  'Power Systems',
+  'Electrical Machines',
+  'Control Systems',
+  'Power Electronics & Drives',
+  'Renewable Energy Systems',
+  'High Voltage Engineering',
+  'Smart Grid & Energy Management',
+  'Microgrids & Distributed Generation',
+  'Instrumentation & Measurement',
+  'Electromagnetics'
 ];
 
 const AVAILABLE_SKILLS = [
@@ -36,17 +114,108 @@ const AVAILABLE_DEPARTMENTS = [
   'Computer Science',
   'Information Technology',
   'Electrical Engineering',
-  'Electronics & Communication',
+  'Electronics and Telecommunication',
   'Mechanical Engineering',
   'Civil Engineering',
   'Artificial Intelligence',
   
 ];
 
+const DEPARTMENT_DOMAINS = {
+  'Computer Science': [
+    'Algorithms & Data Structures',
+    'Software Development',
+    'Database Systems',
+    'Operating Systems',
+    'Computer Networks',
+    'Cybersecurity',
+    'Cloud Computing',
+    'Artificial Intelligence',
+    'Machine Learning',
+    'Data Science',
+    'Computer Graphics & AR/VR',
+    'Distributed Systems',
+    'Theory of Computation'
+  ],
+  'Information Technology': [
+    'Web Development',
+    'Mobile App Development',
+    'Software Engineering',
+    'Information Security',
+    'Cloud & DevOps',
+    'Big Data Analytics',
+    'Database Management',
+    'IT Infrastructure & Networking',
+    'E-commerce & ERP Systems',
+    'Human-Computer Interaction'
+  ],
+  'Electrical Engineering': [
+    'Power Systems',
+    'Electrical Machines',
+    'Control Systems',
+    'Power Electronics & Drives',
+    'Renewable Energy Systems',
+    'High Voltage Engineering',
+    'Smart Grid & Energy Management',
+    'Microgrids & Distributed Generation',
+    'Instrumentation & Measurement',
+    'Electromagnetics'
+  ],
+  'Electronics and Telecommunication': [
+    'VLSI Design',
+    'Embedded Systems',
+    'Digital Signal Processing (DSP)',
+    'Control Systems',
+    'Communication Systems (Wireless, Optical, Satellite)',
+    'Antennas & Microwave Engineering',
+    'Internet of Things (IoT)',
+    'Robotics & Automation',
+    'Nanoelectronics',
+    'Power Electronics'
+  ],
+  'Mechanical Engineering': [
+    'Design Engineering',
+    'Thermal Engineering',
+    'Manufacturing & Production',
+    'Mechatronics',
+    'CAD/CAM & Robotics',
+    'Fluid Mechanics & Hydraulics',
+    'Automotive Engineering',
+    'Aerospace Engineering',
+    'Energy Systems & Power Plants',
+    'Industrial Engineering'
+  ],
+  'Civil Engineering': [
+    'Structural Engineering',
+    'Geotechnical Engineering',
+    'Transportation Engineering',
+    'Environmental Engineering',
+    'Construction Management',
+    'Water Resources Engineering',
+    'Surveying & Geoinformatics',
+    'Coastal & Offshore Engineering',
+    'Urban Planning & Smart Cities',
+    'Earthquake Engineering'
+  ],
+  'Artificial Intelligence': [
+    'Machine Learning',
+    'Deep Learning',
+    'Natural Language Processing (NLP)',
+    'Computer Vision',
+    'Reinforcement Learning',
+    'Neural Networks',
+    'AI in Robotics',
+    'Explainable AI',
+    'AI in Healthcare / Finance / IoT',
+    'Data Mining & Knowledge Discovery'
+  ]
+};
+
 const initialFormData = {
   firstName: '',
   lastName: '',
   email: '',
+  phoneNumber: '',
   department: '',
   division: '',
   currentYear: '',
@@ -60,7 +229,18 @@ const initialFormData = {
   certificates: [],
   previousProjects: '',
   resume: null,
-  resumeURL: ''
+  resumeURL: '',
+  currentlyPursuingInternship: 'No',
+  internshipDetails: {},
+  cocubesScore: '',
+  githubLink: '',
+  linkedinLink: '',
+  codechefLink: '',
+  codechefRating: '',
+  leetcodeLink: '',
+  leetcodeRating: '',
+  achievementsTechnical: '',
+  achievementsPersonal: ''
 };
 
 function Profile() {
@@ -95,6 +275,7 @@ function Profile() {
               firstName: userData.firstName || '',
               lastName: userData.lastName || '',
               email: userData.email || '',
+              phoneNumber: userData.phoneNumber || '',
               department: userData.department || '',
               division: userData.division || '',
               currentYear: userData.currentYear || '',
@@ -106,7 +287,18 @@ function Profile() {
               cgpa: userData.cgpa || '',
               passingYear: userData.passingYear || '',
               certificates: userData.certificates || [],
-              previousProjects: userData.previousProjects || ''
+              previousProjects: userData.previousProjects || '',
+              currentlyPursuingInternship: userData.currentlyPursuingInternship || 'No',
+              internshipDetails: userData.internshipDetails || {},
+              cocubesScore: userData.cocubesScore || '',
+              githubLink: userData.githubLink || '',
+              linkedinLink: userData.linkedinLink || '',
+              codechefLink: userData.codechefLink || '',
+              codechefRating: userData.codechefRating || '',
+              leetcodeLink: userData.leetcodeLink || '',
+              leetcodeRating: userData.leetcodeRating || '',
+              achievementsTechnical: userData.achievementsTechnical || '',
+              achievementsPersonal: userData.achievementsPersonal || ''
             }));
             if (userData.profilePictureURL) {
               setProfilePictureURL(userData.profilePictureURL);
@@ -158,6 +350,9 @@ function Profile() {
           [key]: value
         }
       }));
+    } else if (name === 'phoneNumber') {
+      const digitsOnly = value.replace(/\D/g, '').slice(0, 10);
+      setFormData(prev => ({ ...prev, phoneNumber: digitsOnly }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -232,7 +427,19 @@ function Profile() {
   };
 
   // Filter options based on search
-  const filteredInterests = AVAILABLE_INTERESTS.filter(interest =>
+  const allInterests = AVAILABLE_INTERESTS;
+
+  const prioritizedInterests = useMemo(() => {
+    const dept = formData.department;
+    if (!dept || !DEPARTMENT_DOMAINS[dept]) return allInterests;
+
+    const preferred = new Set(DEPARTMENT_DOMAINS[dept]);
+    const preferredList = allInterests.filter(i => preferred.has(i));
+    const othersList = allInterests.filter(i => !preferred.has(i));
+    return [...preferredList, ...othersList];
+  }, [formData.department]);
+
+  const filteredInterests = prioritizedInterests.filter(interest =>
     interest.toLowerCase().includes(interestSearch.toLowerCase()) &&
     !formData.interests.includes(interest)
   );
@@ -318,6 +525,67 @@ function Profile() {
     setSuccess('');
 
     try {
+      // Required field validations
+      if (!formData.email) {
+        setError('Email is required');
+        setLoading(false);
+        return;
+      }
+      const phoneRegex = /^[0-9]{10}$/;
+      if (!formData.phoneNumber) {
+        setError('Phone number is required');
+        setLoading(false);
+        return;
+      }
+      if (!phoneRegex.test(formData.phoneNumber)) {
+        setError('Phone number must be 10 digits');
+        setLoading(false);
+        return;
+      }
+      if (formData.tenthPercentage === '' || formData.twelfthPercentage === '' || formData.cgpa === '') {
+        setError('10th, 12th percentage and CGPA are required');
+        setLoading(false);
+        return;
+      }
+      if (!formData.passingYear) {
+        setError('Passing year is required');
+        setLoading(false);
+        return;
+      }
+      if (!formData.previousProjects || formData.previousProjects.trim() === '') {
+        setError('Previous projects are required');
+        setLoading(false);
+        return;
+      }
+
+      // Links and scores compulsory; allow 'NA' for not applicable
+      const mustHave = [
+        { key: 'githubLink', label: 'GitHub profile link' },
+        { key: 'linkedinLink', label: 'LinkedIn profile link' },
+        { key: 'cocubesScore', label: 'CoCubes score' },
+        { key: 'leetcodeLink', label: 'LeetCode profile link' },
+        { key: 'codechefLink', label: 'CodeChef profile link' }
+      ];
+      for (const { key, label } of mustHave) {
+        const val = (formData[key] ?? '').toString().trim();
+        if (val === '') {
+          setError(`${label} is required (enter 'NA' if not applicable)`);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Certificates: if any certificate exists, require link; otherwise allow empty array or 'NA' single item
+      const certs = formData.certificates || [];
+      for (const cert of certs) {
+        const linkVal = (cert.link ?? '').toString().trim();
+        if (linkVal === '') {
+          setError('Certificate link is required (enter \"NA\" if not applicable)');
+          setLoading(false);
+          return;
+        }
+      }
+
       // Upload resume if selected
       let resumeURL = formData.resumeURL || null; // Keep existing URL if no new file
       if (formData.resume) {
@@ -340,19 +608,29 @@ function Profile() {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
+        phoneNumber: formData.phoneNumber,
         department: formData.department,
-      division: formData.division,
-      currentYear: formData.currentYear,
-      tenthPercentage: formData.tenthPercentage,
-      twelfthPercentage: formData.twelfthPercentage,
-      currentlyPursuingInternship: formData.currentlyPursuingInternship,
-      internshipDetails: formData.internshipDetails,
+        division: formData.division,
+        currentYear: formData.currentYear,
+        tenthPercentage: formData.tenthPercentage,
+        twelfthPercentage: formData.twelfthPercentage,
+        currentlyPursuingInternship: formData.currentlyPursuingInternship || 'No',
+        internshipDetails: formData.internshipDetails || {},
         interests: formData.interests,
         skills: formData.skills,
         cgpa: formData.cgpa,
         passingYear: formData.passingYear,
         certificates: formData.certificates,
         previousProjects: formData.previousProjects,
+        cocubesScore: formData.cocubesScore,
+        githubLink: formData.githubLink,
+        linkedinLink: formData.linkedinLink,
+        codechefLink: formData.codechefLink,
+        codechefRating: formData.codechefRating,
+        leetcodeLink: formData.leetcodeLink,
+        leetcodeRating: formData.leetcodeRating,
+        achievementsTechnical: formData.achievementsTechnical,
+        achievementsPersonal: formData.achievementsPersonal,
         resumeURL: resumeURL, // Can be null
         profilePictureURL: newProfilePictureURL || null, // Use null instead of empty string
         profileCompleted: true // Mark profile as completed
@@ -449,7 +727,23 @@ function Profile() {
                 name="email"
                 value={formData.email}
                 readOnly
+                required
                 className="w-full px-4 py-2 rounded border border-gray-300 bg-gray-100 focus:outline-none"
+              />
+            </div>
+
+            {/* Phone Number Field */}
+            <div>
+              <input
+                type="tel"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleInputChange}
+                placeholder="Enter 10-digit phone number"
+                required
+                pattern="^[0-9]{10}$"
+                title="Enter a valid 10-digit phone number"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
               />
             </div>
 
@@ -630,7 +924,9 @@ function Profile() {
                 placeholder="10th Percentage"
                 min="0"
                 max="100"
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                required
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
+                onWheel={(e) => e.currentTarget.blur()}
               />
               <input
                 type="number"
@@ -641,7 +937,9 @@ function Profile() {
                 placeholder="12th Percentage"
                 min="0"
                 max="100"
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                required
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
+                onWheel={(e) => e.currentTarget.blur()}
               />
             </div>
 
@@ -665,17 +963,44 @@ function Profile() {
                   <ChevronDown size={16} />
                 </div>
               </div>
-              <input
-                type="number"
-                name="passingYear"
-                value={formData.passingYear}
-                onChange={handleInputChange}
-                placeholder="Passing Year"
-                min="2024"
-                max="2099"
-                required
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  name="passingYear"
+                  value={formData.passingYear}
+                  onChange={handleInputChange}
+                  placeholder="Passing Year"
+                  required
+                  className="w-full px-4 py-2 pr-8 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                  readOnly
+                />
+                <div className="absolute right-1 top-0 h-full flex flex-col">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentYear = parseInt(formData.passingYear) || new Date().getFullYear();
+                      if (currentYear < 2099) {
+                        handleInputChange({ target: { name: 'passingYear', value: (currentYear + 1).toString() } });
+                      }
+                    }}
+                    className="flex-1 px-1 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors text-xs"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentYear = parseInt(formData.passingYear) || new Date().getFullYear();
+                      if (currentYear > 2024) {
+                        handleInputChange({ target: { name: 'passingYear', value: (currentYear - 1).toString() } });
+                      }
+                    }}
+                    className="flex-1 px-1 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors text-xs"
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
               <input
                 type="number"
                 name="cgpa"
@@ -686,7 +1011,8 @@ function Profile() {
                 min="0"
                 max="10"
                 required
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
+                onWheel={(e) => e.currentTarget.blur()}
               />
             </div>
 
@@ -744,12 +1070,100 @@ function Profile() {
               </div>
             </div>
 
+            {/* Competitive Profiles & Achievements */}
+            <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
+              <h3 className="font-medium text-gray-700">Profiles & Achievements</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="number"
+                  step="0.01"
+                  name="cocubesScore"
+                  value={formData.cocubesScore}
+                  onChange={handleInputChange}
+                  placeholder="CoCubes Score"
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
+                  onWheel={(e) => e.currentTarget.blur()}
+                />
+                <input
+                  type="url"
+                  name="githubLink"
+                  value={formData.githubLink}
+                  onChange={handleInputChange}
+                  placeholder="GitHub Profile Link"
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                />
+                <input
+                  type="url"
+                  name="linkedinLink"
+                  value={formData.linkedinLink}
+                  onChange={handleInputChange}
+                  placeholder="LinkedIn Profile Link"
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                />
+                <input
+                  type="url"
+                  name="codechefLink"
+                  value={formData.codechefLink}
+                  onChange={handleInputChange}
+                  placeholder="CodeChef Profile Link"
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                />
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  name="codechefRating"
+                  value={formData.codechefRating}
+                  onChange={handleInputChange}
+                  placeholder="CodeChef Rating"
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
+                  onWheel={(e) => e.currentTarget.blur()}
+                />
+                <input
+                  type="url"
+                  name="leetcodeLink"
+                  value={formData.leetcodeLink}
+                  onChange={handleInputChange}
+                  placeholder="LeetCode Profile Link"
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                />
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  name="leetcodeRating"
+                  value={formData.leetcodeRating}
+                  onChange={handleInputChange}
+                  placeholder="LeetCode Rating"
+                  className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary no-number-wheel"
+                  onWheel={(e) => e.currentTarget.blur()}
+                />
+              </div>
+              <textarea
+                name="achievementsTechnical"
+                value={formData.achievementsTechnical}
+                onChange={handleInputChange}
+                placeholder="Technical Achievements (e.g., hackathons, contests, publications)"
+                rows="3"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary resize-none"
+              />
+              <textarea
+                name="achievementsPersonal"
+                value={formData.achievementsPersonal}
+                onChange={handleInputChange}
+                placeholder="Personal Achievements (e.g., leadership roles, community work)"
+                rows="3"
+                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary resize-none"
+              />
+            </div>
+
             <textarea
               name="previousProjects"
               value={formData.previousProjects}
               onChange={handleInputChange}
               placeholder="Previous Projects(With Explanation)"
               rows="4"
+              required
               className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary resize-none"
             />
 
