@@ -16,7 +16,7 @@ const OLD_NAMES = [
   'E&TC',
 ];
 
-const NEW_NAME = 'Electronics and Telecommunication';
+const NEW_NAME = 'ELECTRONICS AND TELECOMMUNICATION';
 
 async function updateCollectionDepartments(collectionName) {
   const snapshot = await db.collection(collectionName).get();

@@ -4,8 +4,8 @@ import { db } from '../../firebase/config';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 import { getStatusLabel } from '../../utils/applicationUtils';
 
-const YEARS = ['First Year', 'Second Year', 'Third Year', 'Fourth Year'];
-const DIVISIONS = ['A', 'B', 'C'];
+const YEARS = ['All Years', 'First Year', 'Second Year', 'Third Year', 'Fourth Year'];
+const DIVISIONS = ['All Divisions', 'A', 'B', 'C'];
 const DEPARTMENTS = [
   'Computer Science',
   'Information Technology',
@@ -32,6 +32,47 @@ function maskPhone(phone) {
   const digits = String(phone).replace(/\D/g, '');
   if (digits.length <= 4) return digits;
   return `${'*'.repeat(digits.length - 4)}${digits.slice(-4)}`;
+}
+
+// Function to normalize department names for display
+function normalizeDepartmentName(department) {
+  if (!department) return 'N/A';
+  const dept = department.trim();
+  const entcVariants = [
+    'ENTC',
+    'Electronics & communication',
+    'Electronics & Communication',
+    'Electronics and Communication',
+    'Electronics & Comm',
+    'E&TC'
+  ];
+  
+  if (entcVariants.some(variant => variant.toLowerCase() === dept.toLowerCase())) {
+    return 'ELECTRONICS AND TELECOMMUNICATION';
+  }
+  
+  return dept;
+}
+
+// Function to check if a department matches the selected filter
+function departmentMatches(studentDepartment, selectedDepartment) {
+  if (selectedDepartment === 'All Departments') return true;
+  
+  // If filtering for Electronics and Telecommunication, include all ENTC variants
+  if (selectedDepartment === 'Electronics and Telecommunication') {
+    const entcVariants = [
+      'ENTC',
+      'Electronics & communication',
+      'Electronics & Communication',
+      'Electronics and Communication',
+      'Electronics & Comm',
+      'E&TC',
+      'Electronics and Telecommunication'
+    ];
+    return entcVariants.some(variant => variant.toLowerCase() === (studentDepartment || '').toLowerCase());
+  }
+  
+  return studentDepartment === selectedDepartment;
 }
 
 // This is a new component for a single student row
@@ -65,7 +106,7 @@ function StudentRow({ student }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div><strong>Email:</strong> {maskEmail(student.email)}</div>
                 <div><strong>Phone:</strong> {maskPhone(student.phoneNumber)}</div>
-                <div><strong>Department:</strong> {student.department || 'N/A'}</div>
+                <div><strong>Department:</strong> {normalizeDepartmentName(student.department)}</div>
                 <div><strong>Passing Year:</strong> {student.passingYear}</div>
                 <div><strong>Skills:</strong> {student.skills?.join(', ') || 'N/A'}</div>
                 <div><strong>Interests:</strong> {student.interests?.join(', ') || 'N/A'}</div>
@@ -178,9 +219,9 @@ function AllStudents() {
         applications: applicationsByStudent[student.id] || [],
       }))
       .filter(student => 
-        student.currentYear === selectedYear &&
-        student.division === selectedDivision &&
-        (selectedDepartment === 'All Departments' || student.department === selectedDepartment)
+        (selectedYear === 'All Years' || student.currentYear === selectedYear) &&
+        (selectedDivision === 'All Divisions' || student.division === selectedDivision) &&
+        departmentMatches(student.department, selectedDepartment)
       );
   }, [allStudents, applications, internships, quizSubmissions, selectedYear, selectedDivision, selectedDepartment]);
 
@@ -225,7 +266,7 @@ function AllStudents() {
         student.email || '',
         excelPhone,
         student.currentYear || '',
-        student.department || '',
+        normalizeDepartmentName(student.department) || '',
         student.division || '',
         student.tenthPercentage ?? '',
         student.twelfthPercentage ?? '',
@@ -253,7 +294,9 @@ function AllStudents() {
     link.href = url;
     const now = new Date();
     const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
-    link.download = `students_${selectedYear}_${selectedDivision}_${timestamp}.csv`;
+    const yearLabel = selectedYear === 'All Years' ? 'AllYears' : selectedYear.replace(' ', '');
+    const divisionLabel = selectedDivision === 'All Divisions' ? 'AllDivisions' : selectedDivision;
+    link.download = `students_${yearLabel}_${divisionLabel}_${timestamp}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -278,7 +321,7 @@ function AllStudents() {
           <div className="flex border-b">
             {DIVISIONS.map(division => (
               <button key={division} onClick={() => setSelectedDivision(division)} className={`px-6 py-2 -mb-px text-sm font-medium ${selectedDivision === division ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-primary'}`}>
-                Division {division}
+                {division === 'All Divisions' ? 'All Divisions' : `Division ${division}`}
               </button>
             ))}
           </div>

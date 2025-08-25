@@ -963,17 +963,44 @@ function Profile() {
                   <ChevronDown size={16} />
                 </div>
               </div>
-              <input
-                type="number"
-                name="passingYear"
-                value={formData.passingYear}
-                onChange={handleInputChange}
-                placeholder="Passing Year"
-                min="2024"
-                max="2099"
-                required
-                className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:border-primary"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  name="passingYear"
+                  value={formData.passingYear}
+                  onChange={handleInputChange}
+                  placeholder="Passing Year"
+                  required
+                  className="w-full px-4 py-2 pr-8 rounded border border-gray-300 focus:outline-none focus:border-primary"
+                  readOnly
+                />
+                <div className="absolute right-1 top-0 h-full flex flex-col">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentYear = parseInt(formData.passingYear) || new Date().getFullYear();
+                      if (currentYear < 2099) {
+                        handleInputChange({ target: { name: 'passingYear', value: (currentYear + 1).toString() } });
+                      }
+                    }}
+                    className="flex-1 px-1 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors text-xs"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentYear = parseInt(formData.passingYear) || new Date().getFullYear();
+                      if (currentYear > 2024) {
+                        handleInputChange({ target: { name: 'passingYear', value: (currentYear - 1).toString() } });
+                      }
+                    }}
+                    className="flex-1 px-1 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors text-xs"
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
               <input
                 type="number"
                 name="cgpa"

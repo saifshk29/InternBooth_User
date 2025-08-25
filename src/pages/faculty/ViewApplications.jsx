@@ -1,9 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { APPLICATION_STATUS, getStatusLabel, getStatusBadgeClass } from '../../utils/applicationUtils';
+
+// Function to normalize department names for display
+function normalizeDepartmentName(department) {
+  if (!department) return 'N/A';
+  const dept = department.trim();
+  const entcVariants = [
+    'ENTC',
+    'Electronics & communication',
+    'Electronics & Communication',
+    'Electronics and Communication',
+    'Electronics & Comm',
+    'E&TC'
+  ];
+  
+  if (entcVariants.some(variant => variant.toLowerCase() === dept.toLowerCase())) {
+    return 'ELECTRONICS AND TELECOMMUNICATION';
+  }
+  
+  return dept;
+}
 
 function ViewApplications() {
   const { internshipId } = useParams();
@@ -53,7 +73,7 @@ function ViewApplications() {
                   ...application,
                   studentName: `${studentData.firstName} ${studentData.lastName}`,
                   studentClass: studentData.passingYear || '',
-                  studentDepartment: studentData.department || '',
+                  studentDepartment: normalizeDepartmentName(studentData.department) || '',
                   studentSkills: studentData.skills || [],
                   studentInterests: studentData.interests || [],
                   studentCertifications: studentData.certificates || [],
@@ -71,7 +91,7 @@ function ViewApplications() {
                     ...application,
                     studentName: `${userData.firstName} ${userData.lastName}`,
                     studentClass: userData.passingYear || '',
-                    studentDepartment: userData.department || '',
+                    studentDepartment: normalizeDepartmentName(userData.department) || '',
                     studentSkills: userData.skills || [],
                     studentInterests: userData.interests || [],
                     studentCertifications: userData.certificates || [],
