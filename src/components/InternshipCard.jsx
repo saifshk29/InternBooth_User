@@ -3,7 +3,7 @@ import { FaBuilding, FaCalendarAlt, FaClock, FaGraduationCap } from 'react-icons
 import DomainTag from './DomainTag';
 import { useAuth } from '../context/AuthContext';
 
-const InternshipCard = ({ internship }) => {
+const InternshipCard = ({ internship, canApply = true, showAllMode = false }) => {
   console.log('InternshipCard data:', internship);
 
   if (!internship) return null;
@@ -32,6 +32,9 @@ const InternshipCard = ({ internship }) => {
     : 'F';
 
   const safeDomains = Array.isArray(domains) ? domains : [];
+
+  // Check if internship is expired
+  const isExpired = firstRoundDate ? new Date(firstRoundDate) < new Date() : false;
 
   const { currentUser, getUserData, userRole } = useAuth();
 
@@ -73,16 +76,38 @@ const InternshipCard = ({ internship }) => {
         )}
 
         <div className='flex flex-row items-center justify-between gap-2 mt-auto'>
-          <div className="flex items-center text-gray-600">
-            <FaCalendarAlt className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="text-xs sm:text-sm">
-              Deadline: {new Date(applicationDeadline).toLocaleDateString()}
-            </span>
+          <div className={`${isExpired ? 'bg-gray-100 border border-gray-300' : 'bg-red-100 border border-red-300'} rounded-lg p-2 flex-1`}>
+            <div className={`flex flex-col ${isExpired ? 'text-gray-600' : 'text-red-800'}`}>
+              <div className="flex items-center mb-1">
+                <FaCalendarAlt className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm font-medium">
+                  {isExpired ? 'Expired:' : 'Deadline:'} {new Date(firstRoundDate).toLocaleDateString('en-GB')}
+                </span>
+              </div>
+              <div className="flex items-center ml-4 sm:ml-5">
+                <FaClock className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">
+                  {new Date(firstRoundDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                </span>
+              </div>
+            </div>
           </div>
-          <div>
+          <div className="flex flex-col items-end gap-1">
+            {isExpired && (
+              <span className="text-xs text-gray-600 font-medium">
+                Expired
+              </span>
+            )}
+            {showAllMode && !canApply && (
+              <span className="text-xs text-red-600 font-medium">
+                Department mismatch
+              </span>
+            )}
             <Link
               to={`/internships/${id}`}
-              className="btn-primary block text-center text-sm sm:text-base px-3 py-1 sm:px-4 sm:py-2"
+              className={`btn-sm ${
+                canApply && !isExpired ? 'btn-info' : 'btn-secondary opacity-75'
+              }`}
             >
               View Details
             </Link>

@@ -44,7 +44,7 @@ async function updateStudentProfiles() {
     const isInterning = Math.random() > 0.5; // 50% chance
 
     const profileData = {
-      department: 'ENTC',
+      department: 'Electronics and Telecommunication',
       division: getRandomItem(DIVISIONS),
       currentYear: currentYear,
       tenthPercentage: getRandomNumber(80, 98),

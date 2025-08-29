@@ -4,6 +4,7 @@ import { collection, query, where, orderBy, getDocs, doc, getDoc, addDoc, update
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import InternshipForm from '../../components/faculty/InternshipForm';
+import { Settings } from 'lucide-react'; // Added for the new button
 
 function Dashboard() {
   const { currentUser, getUserData } = useAuth();
@@ -163,17 +164,23 @@ function Dashboard() {
 
   return (
     <div className="w-11/12 md:w-3/4 mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">Faculty Dashboard</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-gray-600">
-            Welcome, {facultyData?.firstName || 'Faculty'}
-          </span>
-          <Link to="/profile" className="text-primary hover:underline">
-            Edit Profile
-          </Link>
+        {/* Header Section */}
+        <div className="mb-12">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <h1 className="section-header">Faculty Dashboard</h1>
+              <p className="section-subtitle">
+                Welcome back, {facultyData?.firstName || 'Faculty'}! Manage your internships and track applications.
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link to="/profile" className="btn-outline-warning">
+                <Settings className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Link>
+            </div>
+          </div>
         </div>
-      </div>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -226,7 +233,7 @@ function Dashboard() {
                 }
                 setShowInternshipForm(!showInternshipForm);
               }}
-              className="btn-primary"
+              className={`${showInternshipForm ? 'btn-secondary' : 'btn-success'} ${!profileComplete ? 'btn-disabled' : ''}`}
             >
               {showInternshipForm ? 'Cancel' : 'Post New Internship'}
             </button>
@@ -253,7 +260,7 @@ function Dashboard() {
                     }
                     setShowInternshipForm(true);
                   }}
-                  className={`btn-primary ${!profileComplete ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`btn-success ${!profileComplete ? 'btn-disabled' : ''}`}
                 >
                   Post Your First Internship
                 </button>
@@ -274,36 +281,56 @@ function Dashboard() {
                           </span>
                           <button
                             onClick={() => handleDeleteInternship(internship.id)}
-                            className="text-red-500 hover:text-red-700"
+                            className="btn-outline-danger btn-sm"
+                            title="Delete internship"
                           >
                             Delete
                           </button>
                         </div>
                       </div>
 
-                      <div className="flex items-center mb-4">
-                        <span className="bg-secondary bg-opacity-10 text-secondary text-xs px-2 py-1 rounded mr-2">
-                          {internship.domains.join(', ')}
-                        </span>
+                      <div className="flex flex-wrap items-center gap-2 mb-4">
+                        {internship.departments && internship.departments.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            <span className="text-xs text-gray-600 font-medium">Departments:</span>
+                            {internship.departments.map(dept => (
+                              <span key={dept} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                {dept}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex flex-wrap gap-1">
+                          <span className="text-xs text-gray-600 font-medium">Domains:</span>
+                          {internship.domains.map(domain => (
+                            <span key={domain} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                              {domain}
+                            </span>
+                          ))}
+                        </div>
                         <span className="text-gray-500 text-xs">
-                          Posted on {new Date(internship.postedDate).toLocaleDateString()}
+                          Posted on {new Date(internship.postedDate).toLocaleDateString('en-GB')}
                         </span>
                       </div>
 
                       <p className="text-gray-700 mb-4 line-clamp-3">{internship.description}</p>
 
                       <div className="flex justify-between items-center">
-                        <div className="text-sm text-gray-500">
-                          <span className="mr-4">
-                            Deadline: {new Date(internship.firstRoundDate).toLocaleDateString()}
-                          </span>
-                          <span>
-                            Test Date: {new Date(internship.testDate).toLocaleDateString()}
-                          </span>
+                        <div className="text-sm flex flex-col gap-2">
+                          <div className="bg-red-100 border border-red-300 rounded-lg p-2">
+                            <span className="text-red-800 font-medium">
+                              Deadline: {new Date(internship.firstRoundDate).toLocaleDateString('en-GB')} at {new Date(internship.firstRoundDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </span>
+                          </div>
+                          <div className="bg-red-100 border border-red-300 rounded-lg p-2">
+                            <span className="text-red-800 font-medium">
+                              Test Date: {new Date(internship.testDate).toLocaleDateString('en-GB')} at {new Date(internship.testDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </span>
+                          </div>
                         </div>
                         <Link
                           to={`/faculty/internships/${internship.id}`}
-                          className="text-primary hover:underline"
+                          className="btn-outline-info btn-sm"
                         >
                           View Details
                         </Link>
@@ -338,7 +365,7 @@ function Dashboard() {
                       </span>
                       <Link
                         to={`/faculty/view-applications/${internship.id}`}
-                        className="text-primary hover:text-primary-dark"
+                        className="btn-info btn-sm"
                       >
                         View Applications
                       </Link>

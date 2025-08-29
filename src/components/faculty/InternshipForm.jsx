@@ -12,12 +12,15 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
     title: '',
     companyName: '',
     jobRole: '',
+    departments: [],
     domains: [],
     description: '',
     responsibilities: '',
     skills: [],
     firstRoundDate: '',
+    firstRoundTime: '',
     testDate: '',
+    testTime: '',
     postedDate: new Date().toISOString().split('T')[0],
     location: '',
     startDate: '',
@@ -25,8 +28,17 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
     officeHours: '',
     duration: '',
     facultyName: '',
-    facultyDesignation: ''
+    facultyDesignation: '',
+    eligibilityType: 'cgpa',
+    eligibilityMinCgpa: '',
+    eligibilityMinPercentage: '',
+    eligibilityAllowedYears: [],
+    eligibilityNote: ''
   });
+
+  // Department selection states
+  const [showDepartmentsDropdown, setShowDepartmentsDropdown] = useState(false);
+  const [departmentSearch, setDepartmentSearch] = useState('');
 
   // Domain selection states
   const [showDomainsDropdown, setShowDomainsDropdown] = useState(false);
@@ -36,20 +48,120 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
   const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
   const [skillSearch, setSkillSearch] = useState('');
 
-  // Available domains
-  const AVAILABLE_DOMAINS = [
-    'Web Development',
-    'Mobile Development',
-    'Data Science',
-    'Machine Learning',
-    'Cloud Computing',
-    'DevOps',
-    'UI/UX Design',
-    'Cybersecurity',
-    'Game Development',
-    'Blockchain',
-    'IoT'
+  const AVAILABLE_YEARS = ['First Year', 'Second Year', 'Third Year', 'Fourth Year'];
+
+  // Available departments
+  const AVAILABLE_DEPARTMENTS = [
+    'Computer Science',
+    'Information Technology',
+    'Electrical Engineering',
+    'Electronics and Telecommunication',
+    'Mechanical Engineering',
+    'Civil Engineering',
+    'Artificial Intelligence'
   ];
+
+  // Department-wise domains mapping
+  const DEPARTMENT_DOMAINS = {
+    'Computer Science': [
+      'Algorithms & Data Structures',
+      'Software Development',
+      'Database Systems',
+      'Operating Systems',
+      'Computer Networks',
+      'Cybersecurity',
+      'Cloud Computing',
+      'Artificial Intelligence',
+      'Machine Learning',
+      'Data Science',
+      'Computer Graphics & AR/VR',
+      'Distributed Systems',
+      'Theory of Computation'
+    ],
+    'Information Technology': [
+      'Web Development',
+      'Mobile App Development',
+      'Software Engineering',
+      'Information Security',
+      'Cloud & DevOps',
+      'Big Data Analytics',
+      'Database Management',
+      'IT Infrastructure & Networking',
+      'E-commerce & ERP Systems',
+      'Human-Computer Interaction'
+    ],
+    'Electrical Engineering': [
+      'Power Systems',
+      'Electrical Machines',
+      'Control Systems',
+      'Power Electronics & Drives',
+      'Renewable Energy Systems',
+      'High Voltage Engineering',
+      'Smart Grid & Energy Management',
+      'Microgrids & Distributed Generation',
+      'Instrumentation & Measurement',
+      'Electromagnetics'
+    ],
+    'Electronics and Telecommunication': [
+      'VLSI Design',
+      'Embedded Systems',
+      'Digital Signal Processing (DSP)',
+      'Control Systems',
+      'Communication Systems (Wireless, Optical, Satellite)',
+      'Antennas & Microwave Engineering',
+      'Internet of Things (IoT)',
+      'Robotics & Automation',
+      'Nanoelectronics',
+      'Power Electronics'
+    ],
+    'Mechanical Engineering': [
+      'Design Engineering',
+      'Thermal Engineering',
+      'Manufacturing & Production',
+      'Mechatronics',
+      'CAD/CAM & Robotics',
+      'Fluid Mechanics & Hydraulics',
+      'Automotive Engineering',
+      'Aerospace Engineering',
+      'Energy Systems & Power Plants',
+      'Industrial Engineering'
+    ],
+    'Civil Engineering': [
+      'Structural Engineering',
+      'Geotechnical Engineering',
+      'Transportation Engineering',
+      'Environmental Engineering',
+      'Construction Management',
+      'Water Resources Engineering',
+      'Surveying & Geoinformatics',
+      'Coastal & Offshore Engineering',
+      'Urban Planning & Smart Cities',
+      'Earthquake Engineering'
+    ],
+    'Artificial Intelligence': [
+      'Machine Learning',
+      'Deep Learning',
+      'Natural Language Processing (NLP)',
+      'Computer Vision',
+      'Reinforcement Learning',
+      'Neural Networks',
+      'AI in Robotics',
+      'Explainable AI',
+      'AI in Healthcare / Finance / IoT',
+      'Data Mining & Knowledge Discovery'
+    ]
+  };
+
+  // Get all available domains from all departments
+  const getAllDomains = () => {
+    const allDomains = new Set();
+    Object.values(DEPARTMENT_DOMAINS).forEach(domains => {
+      domains.forEach(domain => allDomains.add(domain));
+    });
+    return Array.from(allDomains).sort();
+  };
+
+  const AVAILABLE_DOMAINS = getAllDomains();
 
   // Available skills
   const AVAILABLE_SKILLS = [
@@ -82,6 +194,7 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
         title: initialData.title || '',
         companyName: initialData.companyName || '',
         jobRole: initialData.jobRole || '',
+        departments: Array.isArray(initialData.departments) ? initialData.departments : [],
         domains: Array.isArray(initialData.domains) ? initialData.domains : [],
         description: initialData.description || '',
         responsibilities: Array.isArray(initialData.responsibilities)
@@ -89,7 +202,9 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
           : (initialData.responsibilities || ''),
         skills: Array.isArray(initialData.skills) ? initialData.skills : [],
         firstRoundDate: initialData.firstRoundDate ? new Date(initialData.firstRoundDate).toISOString().split('T')[0] : '',
+        firstRoundTime: initialData.firstRoundDate ? new Date(initialData.firstRoundDate).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' }) : '',
         testDate: initialData.testDate ? new Date(initialData.testDate).toISOString().split('T')[0] : '',
+        testTime: initialData.testDate ? new Date(initialData.testDate).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' }) : '',
         postedDate: initialData.postedDate ? new Date(initialData.postedDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         location: initialData.location || '',
         startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().split('T')[0] : '',
@@ -97,7 +212,12 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
         officeHours: initialData.officeHours || '',
         duration: initialData.duration || '',
         facultyName: initialData.facultyName || '',
-        facultyDesignation: initialData.facultyDesignation || ''
+        facultyDesignation: initialData.facultyDesignation || '',
+        eligibilityType: initialData.eligibilityCriteria?.type || 'cgpa',
+        eligibilityMinCgpa: initialData.eligibilityCriteria?.minCgpa?.toString() || '',
+        eligibilityMinPercentage: initialData.eligibilityCriteria?.minPercentage?.toString() || '',
+        eligibilityAllowedYears: initialData.eligibilityCriteria?.allowedYears || [],
+        eligibilityNote: initialData.eligibilityCriteria?.note || ''
       });
     }
   }, [editMode, initialData]);
@@ -127,6 +247,26 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
     
     fetchFacultyData();
   }, [currentUser, getUserData]);
+
+  // Handle department selection
+  const handleDepartmentSelect = (department) => {
+    if (!internshipForm.departments.includes(department)) {
+      setInternshipForm(prev => ({
+        ...prev,
+        departments: [...prev.departments, department]
+      }));
+    }
+    setDepartmentSearch('');
+    setShowDepartmentsDropdown(false);
+  };
+
+  // Handle department removal
+  const handleRemoveDepartment = (departmentToRemove) => {
+    setInternshipForm(prev => ({
+      ...prev,
+      departments: prev.departments.filter(dept => dept !== departmentToRemove)
+    }));
+  };
 
   // Handle domain selection
   const handleDomainSelect = (domain) => {
@@ -169,12 +309,16 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
   };
 
   // References for dropdowns to detect outside clicks
+  const departmentsDropdownRef = useRef(null);
   const domainsDropdownRef = useRef(null);
   const skillsDropdownRef = useRef(null);
 
   // Handle clicks outside dropdowns
   useEffect(() => {
     function handleClickOutside(event) {
+      if (departmentsDropdownRef.current && !departmentsDropdownRef.current.contains(event.target)) {
+        setShowDepartmentsDropdown(false);
+      }
       if (domainsDropdownRef.current && !domainsDropdownRef.current.contains(event.target)) {
         setShowDomainsDropdown(false);
       }
@@ -191,8 +335,42 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
     };
   }, []);
 
-  // Filter domains based on search
-  const filteredDomains = AVAILABLE_DOMAINS.filter(domain =>
+  // Filter departments based on search
+  const filteredDepartments = AVAILABLE_DEPARTMENTS.filter(dept =>
+    dept.toLowerCase().includes(departmentSearch.toLowerCase()) &&
+    !internshipForm.departments.includes(dept)
+  );
+
+  // Get prioritized domains based on selected departments
+  const getPrioritizedDomains = () => {
+    if (internshipForm.departments.length === 0) {
+      return AVAILABLE_DOMAINS;
+    }
+    
+    const prioritizedDomains = new Set();
+    const otherDomains = new Set();
+    
+    // Add domains from selected departments first
+    internshipForm.departments.forEach(dept => {
+      if (DEPARTMENT_DOMAINS[dept]) {
+        DEPARTMENT_DOMAINS[dept].forEach(domain => {
+          prioritizedDomains.add(domain);
+        });
+      }
+    });
+    
+    // Add remaining domains
+    AVAILABLE_DOMAINS.forEach(domain => {
+      if (!prioritizedDomains.has(domain)) {
+        otherDomains.add(domain);
+      }
+    });
+    
+    return [...Array.from(prioritizedDomains), ...Array.from(otherDomains)];
+  };
+
+  // Filter domains based on search and prioritize by selected departments
+  const filteredDomains = getPrioritizedDomains().filter(domain =>
     domain.toLowerCase().includes(domainSearch.toLowerCase()) &&
     !internshipForm.domains.includes(domain)
   );
@@ -202,6 +380,11 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
     skill.toLowerCase().includes(skillSearch.toLowerCase()) &&
     !internshipForm.skills.includes(skill)
   );
+
+  // Check if we should show "Add this department" option
+  const showAddDepartmentOption = departmentSearch.trim() !== '' && 
+    filteredDepartments.length === 0 && 
+    !internshipForm.departments.includes(departmentSearch.trim());
 
   // Check if we should show "Add this domain" option
   const showAddDomainOption = domainSearch.trim() !== '' && 
@@ -222,6 +405,15 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
     }));
   };
 
+  const toggleAllowedYear = (year) => {
+    setInternshipForm(prev => ({
+      ...prev,
+      eligibilityAllowedYears: prev.eligibilityAllowedYears.includes(year)
+        ? prev.eligibilityAllowedYears.filter(y => y !== year)
+        : [...prev.eligibilityAllowedYears, year]
+    }));
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -237,8 +429,10 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
         'jobRole', 
         'description', 
         'responsibilities', 
-        'firstRoundDate', 
-        'testDate', 
+        'firstRoundDate',
+        'firstRoundTime', 
+        'testDate',
+        'testTime', 
         'location', 
         'startDate', 
         'stipend',
@@ -251,6 +445,13 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
           setSubmitting(false);
           return;
         }
+      }
+
+      // Validate at least one department is selected
+      if (internshipForm.departments.length === 0) {
+        setFormError('Please select at least one department');
+        setSubmitting(false);
+        return;
       }
 
       // Validate at least one domain is selected
@@ -267,13 +468,29 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
         return;
       }
 
-      // Get dates for reference only (validation removed as requested)
-      const firstRoundDate = new Date(internshipForm.firstRoundDate);
-      const testDate = new Date(internshipForm.testDate);
+      // Eligibility validation
+      if (internshipForm.eligibilityType === 'cgpa') {
+        if (internshipForm.eligibilityMinCgpa !== '' && (Number(internshipForm.eligibilityMinCgpa) < 0 || Number(internshipForm.eligibilityMinCgpa) > 10)) {
+          setFormError('Minimum CGPA must be between 0 and 10');
+          setSubmitting(false);
+          return;
+        }
+      } else if (internshipForm.eligibilityType === 'percentage') {
+        if (internshipForm.eligibilityMinPercentage !== '' && (Number(internshipForm.eligibilityMinPercentage) < 0 || Number(internshipForm.eligibilityMinPercentage) > 100)) {
+          setFormError('Minimum percentage must be between 0 and 100');
+          setSubmitting(false);
+          return;
+        }
+      }
+      // No validation needed for 'none' eligibility type
+
+      // Combine date and time for validation
+      const firstRoundDateTime = new Date(`${internshipForm.firstRoundDate}T${internshipForm.firstRoundTime}`);
+      const testDateTime = new Date(`${internshipForm.testDate}T${internshipForm.testTime}`);
       
       // Only validate that test date is not before the application deadline
-      if (testDate < firstRoundDate) {
-        setFormError('Test date cannot be before the application deadline');
+      if (testDateTime < firstRoundDateTime) {
+        setFormError('Test date and time cannot be before the application deadline');
         setSubmitting(false);
         return;
       }
@@ -295,12 +512,13 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
         title: internshipForm.title.trim(),
         companyName: internshipForm.companyName.trim(),
         jobRole: internshipForm.jobRole.trim(),
+        departments: internshipForm.departments,
         domains: internshipForm.domains,
         description: internshipForm.description.trim(),
         responsibilities: internshipForm.responsibilities.split('\n').filter(item => item.trim() !== ''),
         skills: internshipForm.skills,
-        firstRoundDate: new Date(internshipForm.firstRoundDate).toISOString(),
-        testDate: new Date(internshipForm.testDate).toISOString(),
+        firstRoundDate: new Date(`${internshipForm.firstRoundDate}T${internshipForm.firstRoundTime}`).toISOString(),
+        testDate: new Date(`${internshipForm.testDate}T${internshipForm.testTime}`).toISOString(),
         facultyId: currentUser.uid,
         facultyName: internshipForm.facultyName,
         facultyDesignation: internshipForm.facultyDesignation,
@@ -309,7 +527,14 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
         location: internshipForm.location.trim(),
         startDate: new Date(internshipForm.startDate).toISOString(),
         stipend: internshipForm.stipend.trim(),
-        duration: internshipForm.duration.trim()
+        duration: internshipForm.duration.trim(),
+        eligibilityCriteria: {
+          type: internshipForm.eligibilityType,
+          minCgpa: internshipForm.eligibilityType === 'cgpa' && internshipForm.eligibilityMinCgpa !== '' ? Number(internshipForm.eligibilityMinCgpa) : null,
+          minPercentage: internshipForm.eligibilityType === 'percentage' && internshipForm.eligibilityMinPercentage !== '' ? Number(internshipForm.eligibilityMinPercentage) : null,
+          allowedYears: internshipForm.eligibilityAllowedYears || [],
+          note: internshipForm.eligibilityNote?.trim() || ''
+        }
       };
       
       if (editMode && initialData && initialData.id) {
@@ -336,12 +561,15 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
           title: '',
           companyName: '',
           jobRole: '',
+          departments: [],
           domains: [],
           description: '',
           responsibilities: '',
           skills: [],
           firstRoundDate: '',
+          firstRoundTime: '',
           testDate: '',
+          testTime: '',
           postedDate: new Date().toISOString().split('T')[0],
           location: '',
           startDate: '',
@@ -349,7 +577,12 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
           officeHours: '',
           duration: '',
           facultyName: '',
-          facultyDesignation: ''
+          facultyDesignation: '',
+          eligibilityType: 'cgpa',
+          eligibilityMinCgpa: '',
+          eligibilityMinPercentage: '',
+          eligibilityAllowedYears: [],
+          eligibilityNote: ''
         });
         if (onSuccess) onSuccess();
       }
@@ -432,8 +665,69 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
           </div>
           
           <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="departments">
+              Target Departments* (Students from these departments can view this internship)
+            </label>
+            <div className="relative" ref={departmentsDropdownRef}>
+              <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded min-h-[42px]">
+                {internshipForm.departments.map(department => (
+                  <span 
+                    key={department}
+                    className="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm"
+                  >
+                    {department}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveDepartment(department)}
+                      className="ml-1 text-blue-600 hover:text-blue-800"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  value={departmentSearch}
+                  onChange={(e) => {
+                    setDepartmentSearch(e.target.value);
+                    setShowDepartmentsDropdown(true);
+                  }}
+                  onFocus={() => setShowDepartmentsDropdown(true)}
+                  placeholder={internshipForm.departments.length === 0 ? "Select Departments" : ""}
+                  className="border-0 outline-none flex-grow min-w-[100px]"
+                />
+              </div>
+              {showDepartmentsDropdown && (filteredDepartments.length > 0 || showAddDepartmentOption) && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto">
+                  {filteredDepartments.map(department => (
+                    <button
+                      key={department}
+                      type="button"
+                      onClick={() => handleDepartmentSelect(department)}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                    >
+                      {department}
+                    </button>
+                  ))}
+                  {showAddDepartmentOption && (
+                    <button
+                      type="button"
+                      onClick={() => handleDepartmentSelect(departmentSearch.trim())}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 text-primary font-medium"
+                    >
+                      + Add "{departmentSearch.trim()}"
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <div>
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="domains">
-              Domains*
+              Domains* {internshipForm.departments.length > 0 && <span className="text-sm text-gray-500">(Domains from selected departments appear first)</span>}
             </label>
             <div className="relative" ref={domainsDropdownRef}>
               <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded min-h-[42px]">
@@ -518,14 +812,129 @@ function InternshipForm({ onSuccess, onCancel, initialData, editMode }) {
             className="input-field"
             value={internshipForm.responsibilities}
             onChange={handleInputChange}
-            placeholder="Enter responsibilities, one per line:
-Develop responsive web applications
-Collaborate with design team
-Implement UI components"
+            placeholder={`Enter responsibilities, one per line:\nDevelop responsive web applications\nCollaborate with design team\nImplement UI components`}
             required
           />
         </div>
 
+        {/* Eligibility Criteria */}
+        <div className="mb-6 p-4 border rounded-md bg-gray-50">
+          <h4 className="text-md font-bold mb-3">Eligibility Criteria</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <span className="block text-gray-700 text-sm font-bold mb-2">Mode</span>
+              <div className="flex flex-wrap items-center gap-4">
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="eligibilityType"
+                    value="cgpa"
+                    checked={internshipForm.eligibilityType === 'cgpa'}
+                    onChange={handleInputChange}
+                  />
+                  <span>Minimum CGPA</span>
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="eligibilityType"
+                    value="percentage"
+                    checked={internshipForm.eligibilityType === 'percentage'}
+                    onChange={handleInputChange}
+                  />
+                  <span>Overall Percentage</span>
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="eligibilityType"
+                    value="none"
+                    checked={internshipForm.eligibilityType === 'none'}
+                    onChange={handleInputChange}
+                  />
+                  <span>No Eligibility Criteria</span>
+                </label>
+              </div>
+            </div>
+            {internshipForm.eligibilityType === 'cgpa' ? (
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="eligibilityMinCgpa">
+                  Minimum CGPA
+                </label>
+                <input
+                  id="eligibilityMinCgpa"
+                  name="eligibilityMinCgpa"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="10"
+                  className="input-field no-number-wheel"
+                  value={internshipForm.eligibilityMinCgpa}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 7.0"
+                  onWheel={(e) => e.currentTarget.blur()}
+                />
+              </div>
+            ) : internshipForm.eligibilityType === 'percentage' ? (
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="eligibilityMinPercentage">
+                  Minimum Percentage (required in each of 10th, 12th, and CGPA×9.5)
+                </label>
+                <input
+                  id="eligibilityMinPercentage"
+                  name="eligibilityMinPercentage"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  className="input-field no-number-wheel"
+                  value={internshipForm.eligibilityMinPercentage}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 60"
+                  onWheel={(e) => e.currentTarget.blur()}
+                />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-16">
+                <span className="text-gray-500 text-sm italic">
+                  No specific academic requirements - all students can apply
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <span className="block text-gray-700 text-sm font-bold mb-2">Allowed Years</span>
+              <div className="flex flex-wrap gap-3">
+                {AVAILABLE_YEARS.map((year) => (
+                  <label key={year} className="inline-flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={internshipForm.eligibilityAllowedYears.includes(year)}
+                      onChange={() => toggleAllowedYear(year)}
+                    />
+                    <span>{year}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="eligibilityNote">
+                Additional Notes (visible to students)
+              </label>
+              <textarea
+                id="eligibilityNote"
+                name="eligibilityNote"
+                rows="3"
+                className="input-field"
+                value={internshipForm.eligibilityNote}
+                onChange={handleInputChange}
+                placeholder="E.g., Only students with a CGPA of 7.0 or higher or overall percentage above 70 may apply."
+              />
+            </div>
+          </div>
+        </div>
+        
         <div className="mb-6">
           <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="skills">
             Required Skills*
@@ -647,58 +1056,195 @@ Implement UI components"
               type="number"
               min="1"
               max="24"
-              className="input-field"
+              className="input-field no-number-wheel"
               value={internshipForm.duration}
               onChange={handleInputChange}
               placeholder="e.g., 3"
               required
+              onWheel={(e) => e.currentTarget.blur()}
             />
           </div>
         </div>
         
         <div className="mb-6">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="firstRoundDate">
+          <label className="block text-gray-700 text-sm font-bold mb-2">
             Application Deadline*
           </label>
-          <div className="relative">
-            <input
-              id="firstRoundDate"
-              name="firstRoundDate"
-              type="date"
-              className="input-field cursor-pointer"
-              value={internshipForm.firstRoundDate}
-              onChange={handleInputChange}
-              min={new Date().toISOString().split('T')[0]}
-              onClick={(e) => {
-                // Force the date picker to open when clicking anywhere in the field
-                e.target.showPicker();
-              }}
-              required
-            />
-           
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-600 text-xs font-medium mb-1" htmlFor="firstRoundDate">
+                Date
+              </label>
+              <input
+                id="firstRoundDate"
+                name="firstRoundDate"
+                type="date"
+                className="input-field cursor-pointer"
+                value={internshipForm.firstRoundDate}
+                onChange={handleInputChange}
+                min={new Date().toISOString().split('T')[0]}
+                onClick={(e) => {
+                  e.target.showPicker();
+                }}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 text-xs font-medium mb-1" htmlFor="firstRoundTime">
+                Time (12-hour format)
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <select
+                  name="firstRoundHour"
+                  className="input-field text-sm"
+                  value={internshipForm.firstRoundTime ? new Date(`2000-01-01T${internshipForm.firstRoundTime}`).getHours() % 12 || 12 : ''}
+                  onChange={(e) => {
+                    const hour = parseInt(e.target.value);
+                    const currentTime = internshipForm.firstRoundTime || '12:00';
+                    const [, minute] = currentTime.split(':');
+                    const currentHour24 = internshipForm.firstRoundTime ? new Date(`2000-01-01T${internshipForm.firstRoundTime}`).getHours() : 0;
+                    const isPM = currentHour24 >= 12;
+                    const newHour24 = isPM ? (hour === 12 ? 12 : hour + 12) : (hour === 12 ? 0 : hour);
+                    const newTime = `${newHour24.toString().padStart(2, '0')}:${minute || '00'}`;
+                    setInternshipForm(prev => ({ ...prev, firstRoundTime: newTime }));
+                  }}
+                  required
+                >
+                  <option value="">Hour</option>
+                  {[...Array(12)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>{i + 1}</option>
+                  ))}
+                </select>
+                <select
+                  name="firstRoundMinute"
+                  className="input-field text-sm"
+                  value={internshipForm.firstRoundTime ? internshipForm.firstRoundTime.split(':')[1] : ''}
+                  onChange={(e) => {
+                    const minute = e.target.value;
+                    const currentTime = internshipForm.firstRoundTime || '12:00';
+                    const currentHour24 = internshipForm.firstRoundTime ? new Date(`2000-01-01T${internshipForm.firstRoundTime}`).getHours() : 12;
+                    const newTime = `${currentHour24.toString().padStart(2, '0')}:${minute}`;
+                    setInternshipForm(prev => ({ ...prev, firstRoundTime: newTime }));
+                  }}
+                  required
+                >
+                  <option value="">Min</option>
+                  {[...Array(60)].map((_, i) => (
+                    <option key={i} value={i.toString().padStart(2, '0')}>{i.toString().padStart(2, '0')}</option>
+                  ))}
+                </select>
+                <select
+                  name="firstRoundPeriod"
+                  className="input-field text-sm"
+                  value={internshipForm.firstRoundTime ? (new Date(`2000-01-01T${internshipForm.firstRoundTime}`).getHours() >= 12 ? 'PM' : 'AM') : ''}
+                  onChange={(e) => {
+                    const period = e.target.value;
+                    const currentTime = internshipForm.firstRoundTime || '12:00';
+                    const [hourStr, minute] = currentTime.split(':');
+                    const currentHour12 = new Date(`2000-01-01T${currentTime}`).getHours() % 12 || 12;
+                    const newHour24 = period === 'PM' ? (currentHour12 === 12 ? 12 : currentHour12 + 12) : (currentHour12 === 12 ? 0 : currentHour12);
+                    const newTime = `${newHour24.toString().padStart(2, '0')}:${minute}`;
+                    setInternshipForm(prev => ({ ...prev, firstRoundTime: newTime }));
+                  }}
+                  required
+                >
+                  <option value="">AM/PM</option>
+                  <option value="AM">AM</option>
+                  <option value="PM">PM</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="mb-6">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="testDate">
+          <label className="block text-gray-700 text-sm font-bold mb-2">
             Test Date*
           </label>
-          <div className="relative">
-            <input
-              id="testDate"
-              name="testDate"
-              type="date"
-              className="input-field cursor-pointer"
-              value={internshipForm.testDate}
-              onChange={handleInputChange}
-              min={internshipForm.firstRoundDate || new Date().toISOString().split('T')[0]}
-              onClick={(e) => {
-                // Force the date picker to open when clicking anywhere in the field
-                e.target.showPicker();
-              }}
-              required
-            />
-            
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-600 text-xs font-medium mb-1" htmlFor="testDate">
+                Date
+              </label>
+              <input
+                id="testDate"
+                name="testDate"
+                type="date"
+                className="input-field cursor-pointer"
+                value={internshipForm.testDate}
+                onChange={handleInputChange}
+                min={internshipForm.firstRoundDate || new Date().toISOString().split('T')[0]}
+                onClick={(e) => {
+                  e.target.showPicker();
+                }}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 text-xs font-medium mb-1" htmlFor="testTime">
+                Time (12-hour format)
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <select
+                  name="testHour"
+                  className="input-field text-sm"
+                  value={internshipForm.testTime ? new Date(`2000-01-01T${internshipForm.testTime}`).getHours() % 12 || 12 : ''}
+                  onChange={(e) => {
+                    const hour = parseInt(e.target.value);
+                    const currentTime = internshipForm.testTime || '12:00';
+                    const [, minute] = currentTime.split(':');
+                    const currentHour24 = internshipForm.testTime ? new Date(`2000-01-01T${internshipForm.testTime}`).getHours() : 0;
+                    const isPM = currentHour24 >= 12;
+                    const newHour24 = isPM ? (hour === 12 ? 12 : hour + 12) : (hour === 12 ? 0 : hour);
+                    const newTime = `${newHour24.toString().padStart(2, '0')}:${minute || '00'}`;
+                    setInternshipForm(prev => ({ ...prev, testTime: newTime }));
+                  }}
+                  required
+                >
+                  <option value="">Hour</option>
+                  {[...Array(12)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>{i + 1}</option>
+                  ))}
+                </select>
+                <select
+                  name="testMinute"
+                  className="input-field text-sm"
+                  value={internshipForm.testTime ? internshipForm.testTime.split(':')[1] : ''}
+                  onChange={(e) => {
+                    const minute = e.target.value;
+                    const currentTime = internshipForm.testTime || '12:00';
+                    const currentHour24 = internshipForm.testTime ? new Date(`2000-01-01T${internshipForm.testTime}`).getHours() : 12;
+                    const newTime = `${currentHour24.toString().padStart(2, '0')}:${minute}`;
+                    setInternshipForm(prev => ({ ...prev, testTime: newTime }));
+                  }}
+                  required
+                >
+                  <option value="">Min</option>
+                  {[...Array(60)].map((_, i) => (
+                    <option key={i} value={i.toString().padStart(2, '0')}>{i.toString().padStart(2, '0')}</option>
+                  ))}
+                </select>
+                <select
+                  name="testPeriod"
+                  className="input-field text-sm"
+                  value={internshipForm.testTime ? (new Date(`2000-01-01T${internshipForm.testTime}`).getHours() >= 12 ? 'PM' : 'AM') : ''}
+                  onChange={(e) => {
+                    const period = e.target.value;
+                    const currentTime = internshipForm.testTime || '12:00';
+                    const [hourStr, minute] = currentTime.split(':');
+                    const currentHour12 = new Date(`2000-01-01T${currentTime}`).getHours() % 12 || 12;
+                    const newHour24 = period === 'PM' ? (currentHour12 === 12 ? 12 : currentHour12 + 12) : (currentHour12 === 12 ? 0 : currentHour12);
+                    const newTime = `${newHour24.toString().padStart(2, '0')}:${minute}`;
+                    setInternshipForm(prev => ({ ...prev, testTime: newTime }));
+                  }}
+                  required
+                >
+                  <option value="">AM/PM</option>
+                  <option value="AM">AM</option>
+                  <option value="PM">PM</option>
+                </select>
+              </div>
+            </div>
           </div>
           <p className="text-sm text-gray-500 mt-1">Test will be conducted on or after the application deadline</p>
         </div>
@@ -721,10 +1267,17 @@ Implement UI components"
           </p>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end space-x-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="btn-secondary"
+          >
+            Cancel
+          </button>
           <button
             type="submit"
-            className="btn-primary"
+            className={`${editMode ? 'btn-warning' : 'btn-success'} ${submitting ? 'btn-disabled' : ''}`}
             disabled={submitting}
           >
             {submitting ? (editMode ? 'Updating...' : 'Posting...') : (editMode ? 'Update Internship' : 'Post Internship')}

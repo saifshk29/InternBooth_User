@@ -1,9 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { APPLICATION_STATUS, getStatusLabel, getStatusBadgeClass } from '../../utils/applicationUtils';
+
+// Function to normalize department names for display
+function normalizeDepartmentName(department) {
+  if (!department) return 'N/A';
+  const dept = department.trim();
+  const entcVariants = [
+    'ENTC',
+    'Electronics & communication',
+    'Electronics & Communication',
+    'Electronics and Communication',
+    'Electronics & Comm',
+    'E&TC'
+  ];
+  
+  if (entcVariants.some(variant => variant.toLowerCase() === dept.toLowerCase())) {
+    return 'ELECTRONICS AND TELECOMMUNICATION';
+  }
+  
+  return dept;
+}
 
 function ViewApplications() {
   const { internshipId } = useParams();
@@ -53,11 +73,18 @@ function ViewApplications() {
                   ...application,
                   studentName: `${studentData.firstName} ${studentData.lastName}`,
                   studentClass: studentData.passingYear || '',
-                  studentDepartment: studentData.department || '',
+                  studentDepartment: normalizeDepartmentName(studentData.department) || '',
                   studentSkills: studentData.skills || [],
                   studentInterests: studentData.interests || [],
                   studentCertifications: studentData.certificates || [],
-                  studentProjects: studentData.previousProjects ? [studentData.previousProjects] : []
+                  studentProjects: studentData.previousProjects ? [studentData.previousProjects] : [],
+                  studentGithubLink: studentData.githubLink || '',
+                  studentLinkedinLink: studentData.linkedinLink || '',
+                  studentCodechefLink: studentData.codechefLink || '',
+                  studentLeetcodeLink: studentData.leetcodeLink || '',
+                  studentEmail: studentData.email || '',
+                  studentPhone: studentData.phoneNumber || '',
+                  studentCGPA: studentData.cgpa || ''
                 };
               } else {
                 // Try to fetch from users collection as fallback
@@ -71,11 +98,15 @@ function ViewApplications() {
                     ...application,
                     studentName: `${userData.firstName} ${userData.lastName}`,
                     studentClass: userData.passingYear || '',
-                    studentDepartment: userData.department || '',
+                    studentDepartment: normalizeDepartmentName(userData.department) || '',
                     studentSkills: userData.skills || [],
                     studentInterests: userData.interests || [],
                     studentCertifications: userData.certificates || [],
-                    studentProjects: userData.previousProjects ? [userData.previousProjects] : []
+                    studentProjects: userData.previousProjects ? [userData.previousProjects] : [],
+                    studentGithubLink: userData.githubLink || '',
+                    studentLinkedinLink: userData.linkedinLink || '',
+                    studentCodechefLink: userData.codechefLink || '',
+                    studentLeetcodeLink: userData.leetcodeLink || ''
                   };
                 }
               }
@@ -227,6 +258,10 @@ function ViewApplications() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interests</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certifications</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Projects</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GitHub</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LinkedIn</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CodeChef</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LeetCode</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied On</th>
                 </tr>
@@ -263,13 +298,49 @@ function ViewApplications() {
                         </div>
                       ))}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {application.studentGithubLink && application.studentGithubLink !== 'NA' ? (
+                        <a href={application.studentGithubLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                          GitHub
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">N/A</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {application.studentLinkedinLink && application.studentLinkedinLink !== 'NA' ? (
+                        <a href={application.studentLinkedinLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                          LinkedIn
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">N/A</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {application.studentCodechefLink && application.studentCodechefLink !== 'NA' ? (
+                        <a href={application.studentCodechefLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                          CodeChef
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">N/A</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {application.studentLeetcodeLink && application.studentLeetcodeLink !== 'NA' ? (
+                        <a href={application.studentLeetcodeLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                          LeetCode
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">N/A</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(application.status)}`}>
                         {getStatusLabel(application.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(application.appliedAt).toLocaleDateString()}
+                      {new Date(application.appliedAt).toLocaleDateString('en-GB')}
                     </td>
                   </tr>
                 ))}

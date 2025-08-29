@@ -306,10 +306,17 @@ function ApplicationForm() {
               </Link>
             </div>
             
-            <div className="flex justify-end">
+            <div className="flex justify-end space-x-4">
+              <button
+                type="button"
+                onClick={() => window.history.back()}
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
-                className="btn-primary"
+                className={`btn-success ${submitting ? 'btn-disabled' : ''}`}
                 disabled={submitting}
               >
                 {submitting ? 'Submitting...' : 'Submit Application'}

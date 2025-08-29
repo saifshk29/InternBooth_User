@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs, doc, getDoc, orderBy, limit, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, User, ClipboardList, ChevronRight, Trash2, GripVertical, Filter, CheckCircle, Award, XCircle, FileText, Clock } from 'lucide-react';
+import { Bell, User, ClipboardList, ChevronRight, Trash2, GripVertical, Filter, CheckCircle, Award, XCircle, FileText, Clock, HelpCircle, AlertCircle } from 'lucide-react';
+import { checkProfileCompletion, generateProfileNotificationMessage } from '../../utils/profileUtils';
 
 function Dashboard() {
   const { currentUser } = useAuth();
@@ -13,6 +14,7 @@ function Dashboard() {
   const [filteredApplications, setFilteredApplications] = useState([]);
   const [removedApplications, setRemovedApplications] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [profileNotification, setProfileNotification] = useState(null);
   const [recommendedCourses, setRecommendedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -137,7 +139,23 @@ function Dashboard() {
         try {
           const studentDoc = await getDoc(doc(db, 'students', currentUser.uid));
           if (studentDoc.exists()) {
-            setStudentData(studentDoc.data());
+            const data = studentDoc.data();
+            setStudentData(data);
+            
+            // Check profile completion and add notification if needed
+            const { isComplete, missingFields } = checkProfileCompletion(data);
+            if (!isComplete) {
+              const message = generateProfileNotificationMessage(missingFields);
+              setProfileNotification({
+                id: 'profile-incomplete',
+                type: 'profile',
+                message,
+                createdAt: new Date(),
+                priority: 'high'
+              });
+            } else {
+              setProfileNotification(null);
+            }
           }
         } catch (err) {
           console.error('Error fetching student data:', err);
@@ -520,7 +538,7 @@ function Dashboard() {
           </div>
           <div>
             <h1 className="text-2xl font-semibold">
-              Hola {studentData?.firstName} {studentData?.lastName} 👋
+              Hello {studentData?.firstName} {studentData?.lastName}!
             </h1>
             <p className="text-gray-600">{studentData?.department}</p>
             <p className="text-gray-600">{studentData?.college}</p>
@@ -552,7 +570,7 @@ function Dashboard() {
               {removedApplications.length > 0 && (
                 <button 
                   onClick={handleRestoreAllApplications}
-                  className="text-blue-500 hover:text-blue-700 transition-colors p-1 rounded-full hover:bg-blue-100"
+                  className="btn-outline-info btn-sm"
                   title="Restore all hidden applications"
                 >
                   Show Hidden
@@ -591,7 +609,7 @@ function Dashboard() {
                                 `Round ${application.currentRound || 1} Test Submitted - Pending Review` :
                                !application.internship && !application.internshipDetails ? 'Internship Details Not Available' :
                                application.status === 'pending' ? 
-                                `Test Date: ${new Date(application.internship?.testDate || application.internshipDetails?.testDate || new Date()).toLocaleDateString()}` :
+                                `Test Date: ${new Date(application.internship?.testDate || application.internshipDetails?.testDate || new Date()).toLocaleDateString('en-GB')} at ${new Date(application.internship?.testDate || application.internshipDetails?.testDate || new Date()).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}` :
                                application.status === 'selected' ? 'Congratulations! You are Selected' :
                                application.status === 'test_approved' ? 
                                  `Round 2 (Quiz) Passed - Congratulations!` :
@@ -649,7 +667,7 @@ function Dashboard() {
                                           <CheckCircle className="h-4 w-4 text-green-500" /> : 
                                           round.status === 'failed' ? 
                                           <XCircle className="h-4 w-4 text-red-500" /> : 
-                                          <HelpCircleIcon className="h-4 w-4 text-gray-500" />
+                                          <HelpCircle className="h-4 w-4 text-gray-500" />
                                         }
                                         <p className="font-medium text-sm">Round {round.roundNumber} {
                                           round.status === 'passed' ? 'Passed' : 
@@ -708,14 +726,14 @@ function Dashboard() {
                         {application.status === 'selected' ? (
                           <button
                             onClick={() => handleAcceptOffer(application)}
-                            className="bg-green-500 text-white px-3 py-1 rounded-full text-sm hover:bg-green-600 transition-colors"
+                            className="btn-success btn-sm"
                           >
                             Accept Offer
                           </button>
                         ) : (
                           <button
                             onClick={(e) => handleRemoveApplication(e, application.id)}
-                            className="text-gray-400 hover:text-red-500 p-2"
+                            className="btn-outline-danger btn-sm"
                             title="Remove from list"
                           >
                             <Trash2 size={18} />
@@ -734,7 +752,7 @@ function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div 
               onClick={() => navigate('/student/profile')}
-              className="bg-[#6366F1] text-white rounded-lg p-6 cursor-pointer hover:bg-[#5558E6] transition-colors flex flex-col"
+              className="bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg p-6 cursor-pointer hover:from-primary-dark hover:to-primary transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex flex-col"
             >
               <User size={32} className="mb-4" />
               <h3 className="text-xl font-semibold mb-2">Edit Profile</h3>
@@ -745,7 +763,7 @@ function Dashboard() {
             </div>
             <div 
               onClick={() => navigate('/student/applications')}
-              className="bg-[#6366F1] text-white rounded-lg p-6 cursor-pointer hover:bg-[#5558E6] transition-colors flex flex-col"
+              className="bg-gradient-to-r from-success to-success-dark text-white rounded-lg p-6 cursor-pointer hover:from-success-dark hover:to-success transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex flex-col"
             >
               <ClipboardList size={32} className="mb-4" />
               <h3 className="text-xl font-semibold mb-2">My Applications</h3>
@@ -765,17 +783,46 @@ function Dashboard() {
               <Bell size={20} />
             </div>
             <div className="space-y-4">
-              {notifications.length === 0 ? (
+              {!profileNotification && notifications.length === 0 ? (
                 <p className="text-gray-500">No notifications yet.</p>
               ) : (
-                notifications.map((notification) => (
-                  <div key={notification.id} className="border-b pb-4 last:border-b-0 last:pb-0">
-                    <p>{notification.message}</p>
-                    <span className="text-sm text-gray-500">
-                      {notification.createdAt?.toDate().toLocaleDateString()}
-                    </span>
-                  </div>
-                ))
+                <>
+                  {/* Profile completion notification */}
+                  {profileNotification && (
+                    <div className="border-b pb-4 bg-orange-50 p-3 rounded-lg border border-orange-200">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle size={16} className="text-orange-500 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-900">{profileNotification.message}</p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <Link
+                              to="/student/profile"
+                              className="text-xs text-primary hover:text-primary-dark font-medium"
+                            >
+                              Complete Profile →
+                            </Link>
+                            <button
+                              onClick={() => setProfileNotification(null)}
+                              className="text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              Dismiss
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Regular notifications */}
+                  {notifications.map((notification) => (
+                    <div key={notification.id} className="border-b pb-4 last:border-b-0 last:pb-0">
+                      <p>{notification.message}</p>
+                      <span className="text-sm text-gray-500">
+                        {notification.createdAt?.toDate().toLocaleDateString('en-GB')}
+                      </span>
+                    </div>
+                  ))}
+                </>
               )}
             </div>
           </div>
